@@ -12,6 +12,7 @@ public class Player : MonoBehaviour
     private InputAction fire;
 
     private float minX, maxX, minY, maxY;
+    public float topBound, btmBound, leftBound, rightBound;
 
     float moveSpeed = 10f;
 
@@ -64,11 +65,11 @@ public class Player : MonoBehaviour
     {
         Vector2 pos = transform.position;
         moveDir = move.ReadValue<Vector2>();
-        if (pos.y <= (minY + sr.bounds.size.y/2) && moveDir.y < 0 || pos.y >= (maxY - sr.bounds.size.y / 2) && moveDir.y > 0)
+        if (pos.y <= (minY + sr.bounds.size.y/2) && moveDir.y < 0 || pos.y >= (maxY - topBound - sr.bounds.size.y / 2) && moveDir.y > 0)
         {
             moveDir = new Vector2(moveDir.x, 0);
         }
-        if (pos.x <= (minX + sr.bounds.size.x / 2) && moveDir.x < 0 || pos.x >= (maxX - sr.bounds.size.x / 2) && moveDir.x > 0)
+        if (pos.x <= (minX + sr.bounds.size.x / 2) && moveDir.x < 0 || pos.x >= (maxX - rightBound - sr.bounds.size.x / 2) && moveDir.x > 0)
         {
             moveDir = new Vector2(0, moveDir.y);
         }
