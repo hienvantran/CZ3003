@@ -5,11 +5,12 @@ using UnityEngine;
 public class BGScroller : MonoBehaviour
 {
     [SerializeField] private Renderer backgroundRenderer;
+    [SerializeField] private float speedMult;
     private float speed;
 
     private void Start()
     {
-        this.speed = QuestionManager.instance.GetGameSpeed();
+        this.speed = QuestionManager.instance.GetGameSpeed() * speedMult;
     }
 
     void Update()
