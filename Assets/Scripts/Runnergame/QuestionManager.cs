@@ -23,6 +23,8 @@ public class QuestionManager : MonoBehaviour
     private float intervalTime;
     private bool isInterval = false;
 
+    private AudioSource audio;
+
     //Awake
     void Awake()
     {
@@ -34,6 +36,7 @@ public class QuestionManager : MonoBehaviour
     {
         activeOptions = new List<GameObject>();
         NextQuestion();
+        audio = GetComponent<AudioSource>();
     }
 
     //Update
@@ -159,6 +162,8 @@ public class QuestionManager : MonoBehaviour
 
         intervalTime = 5f;
         isInterval = true;
+
+        audio.Play();
     }
 
     //Interval between questions
