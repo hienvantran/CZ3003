@@ -1,14 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Audio;
 using TMPro;
 
 public class QuestionManager : MonoBehaviour
 {
-    private enum OpMode { ADD, SUB, MUL, DIV }
+    public enum OpMode { ADD, SUB, MUL, DIV }
 
     [SerializeField] private TextMeshProUGUI questionText;
     [SerializeField] private TextMeshProUGUI scoreText;
+    [SerializeField] private TextMeshProUGUI comboText;
     [SerializeField] private List<GameObject> optionSpawnList;
     [SerializeField] private GameObject optionPrefab;
 
@@ -16,37 +18,64 @@ public class QuestionManager : MonoBehaviour
     [SerializeField] private OpMode opMode;
     [SerializeField] private float speed = 1f;
 
+    private AudioSource audioSauce;
+    [SerializeField] private AudioClip correctSfx;
+    [SerializeField] private AudioClip wrongSfx;
+    [SerializeField] private AudioMixer mixer;
+
     public static QuestionManager instance;
     private int num1, num2, answer;
     private int score = 0;
+    private int combo = 0;
     private List<GameObject> activeOptions;
     private float intervalTime;
     private bool isInterval = false;
 
-    private AudioSource audio;
+    
+    private bool isPlaying = false;
+    private bool isEndless = false;
+    private int numQns = 10;
+    private int qnIdx = 1;
+    public bool isDebug = true;
 
     //Awake
     void Awake()
     {
-        instance = this;
+        if (!QuestionManager.instance)
+            instance = this;
     }
 
     //Start
     void Start()
     {
         activeOptions = new List<GameObject>();
-        NextQuestion();
-        audio = GetComponent<AudioSource>();
+        audioSauce = GetComponent<AudioSource>();
+        //SetVolume();
+        //if (isDebug)
+        //    StartLevel(10, opMode);
+
     }
 
     //Update
     void Update()
     {
-        Interval();
+        //Interval();
     }
 
-    //Next Question
-    private void NextQuestion()
+    public void StartLevel(int numQns, OpMode mode)
+    {
+        if (isPlaying)
+            return;
+        isPlaying = true;
+        this.numQns = numQns;
+        opMode = mode;
+        qnIdx = 0;
+        intervalTime = 3f;
+        StartCoroutine(NextQuestion());
+    }
+
+    //Create a new question
+    private void NewQuestion()
     {
         answer = GenerateOptions(GenerateQuestion());
     }
@@ -54,63 +83,47 @@ public class QuestionManager : MonoBehaviour
     //Generate Question
     private int GenerateQuestion()
     {
-        num1 = Random.Range(1, 10);
-        num2 = Random.Range(1, 10);
+        
         int ans = 0;
 
         //Addition
         if (opMode == OpMode.ADD)
         {
+            num1 = Random.Range(1, 10);
+            num2 = Random.Range(1, 10);
             //set qn and ans
-            questionText.SetText(string.Format("{0} + {1} = ?", num1, num2));
+            questionText.SetText(string.Format("Qn {0}: {1} + {2} = ?", qnIdx, num1, num2));
             ans = num1 + num2;
         }
         //Subtraction
         else if (opMode == OpMode.SUB)
         {
-            //make the numbers friendly for pri sch kids
-            //if ans will be 0, add 1 ~ 3 to num1
-            if (num1 == num2)
-            {
-                num1 += Random.Range(1, 4);
-            }
-            //if ans will be -tive, swap num1 & num2
-            else if (num1 < num2)
-            {
-                num1 = num1 ^ num2;
-                num2 = num1 ^ num2;
-                num1 = num1 ^ num2;
-            }
+            num1 = Random.Range(2, 10);
+            num2 = Random.Range(1, num1);
             //set qn and ans
-            questionText.SetText(string.Format("{0} - {1} = ?", num1, num2));
+            questionText.SetText(string.Format("Qn {0}: {1} - {2} = ?", qnIdx, num1, num2));
             ans = num1 - num2;
         }
         //Multiplication
         if (opMode == OpMode.MUL)
         {
+            num1 = Random.Range(2, 10);
+            num2 = Random.Range(2, 11-num1);
             //set qn and ans
-            questionText.SetText(string.Format("{0} x {1} = ?", num1, num2));
+            questionText.SetText(string.Format("Qn {0}: {1} X {2} = ?", qnIdx, num1, num2));
             ans = num1 * num2;
         }
         //Division
         if (opMode == OpMode.DIV)
         {
-            //make sure num1 is > num2 and that num1 % num2 = 0
-            if (num1 == num2)
-            {
-                num1++;
-            }
-            else if (num1 < num2)
-            {
-                num1 = num1 ^ num2;
-                num2 = num1 ^ num2;
-                num1 = num1 ^ num2;
-            }
+            num1 = Random.Range(2, 10);
+            num2 = Random.Range(1, num1);
+
             int remainder = num1 % num2;
             num1 += (num2 - remainder);
 
             //set qn and ans
-            questionText.SetText(string.Format("{0} ÷ {1} = ?", num1, num2));
+            questionText.SetText(string.Format("Qn {0}: {1} / {2} = ?", qnIdx, num1, num2));
             ans = num1 / num2;
         }
         return ans;
@@ -126,7 +139,7 @@ public class QuestionManager : MonoBehaviour
             GameObject op = (GameObject)Instantiate(optionPrefab, optionSpawnList[i].transform.position, Quaternion.identity);
             while (true)
             {
-                int generatedAnswer = ans + (i * Random.Range(-4, 5));
+                int generatedAnswer = ans + (i * Random.Range(-3, 4));
                 if (!answers.Contains(generatedAnswer))
                 {
                     op.GetComponent<Option>().setVal(generatedAnswer);
@@ -145,14 +158,19 @@ public class QuestionManager : MonoBehaviour
         //check answer
         if (val == answer)
         {
-            score++;
+            combo++;
+            score += combo * 1;
+            audioSauce.clip = correctSfx;
             questionText.SetText("Correct!");
         }
         else
         {
+            combo = 0;
+            audioSauce.clip = wrongSfx;
             questionText.SetText("Incorrect!");
         }
         scoreText.SetText(string.Format("Score: {0}", score));
+        comboText.SetText(string.Format("Combo: {0}", combo));
         
         //destroy all active options
         foreach (GameObject g in activeOptions)
@@ -162,32 +180,52 @@ public class QuestionManager : MonoBehaviour
 
         intervalTime = 5f;
         isInterval = true;
+        StartCoroutine(NextQuestion());
 
-        audio.Play();
+        audioSauce.Play();
     }
 
-    //Interval between questions
-    private void Interval()
+    /// <summary>
+    /// Coroutine to call next question
+    /// </summary>
+    /// <returns></returns>
+    IEnumerator NextQuestion()
     {
-        if (isInterval)
+        qnIdx++;
+        if (qnIdx > numQns)
         {
-            intervalTime -= Time.deltaTime;
-            if (intervalTime <= 3f)
-            {
-                questionText.SetText("Next Question in " + Mathf.RoundToInt(intervalTime).ToString());
-            }
-            if (intervalTime <= 0)
-            {
-                isInterval = false;
-                NextQuestion();
-            }
+            EndLevel();
+            yield return null;
         }
+        else
+        {
+            while (intervalTime > 0)
+            {
+                float curTime = Time.time;
+                yield return new WaitForSeconds(0.1f);
+                float newTime = Time.time - curTime;
+                intervalTime -= newTime;
+                if (intervalTime <= 3f)
+                {
+                    questionText.SetText("Next Question in " + Mathf.RoundToInt(intervalTime).ToString());
+                }
+            }
+            NewQuestion();
+            
+        }
+    }
+
+    private void EndLevel()
+    {
+        questionText.SetText(string.Format("Game Overrr (Temp)"));
+
+        //WIP
     }
 
     //Get Game speed
     public float GetGameSpeed()
     {
-        return this.speed;
+        return speed;
     }
 
     //shuffle list
