@@ -6,37 +6,34 @@ using UnityEngine.UI;
 
 public class LevelManager : MonoBehaviour
 {
-    public AudioMixer mixer;
-    public Slider musicSlider;
-    public int debugNumQns = 10;
-    public QuestionManager.OpMode debugOpMode = QuestionManager.OpMode.ADD;
-    QuestionManager qm;
-    float musicVol;
+    public static LevelManager instance;
+    public int numQns = 10;
+    public float runnerDifficulty = 1;
+    public QuestionManager.OpMode runnerOpMode = QuestionManager.OpMode.ADD;
+
+    private void Awake()
+    {
+        if (!LevelManager.instance)
+            LevelManager.instance = this;
+
+        if (LevelManager.instance != this)
+            Destroy(this.gameObject);
+
+        DontDestroyOnLoad(this.gameObject);
+    }
 
     // Start is called before the first frame update
     void Start()
     {
-        qm = QuestionManager.instance;
-        SetVolume();
-        SetSliders();
-        qm.StartLevel(debugNumQns, debugOpMode);
+
     }
 
-    private void SetVolume()
+    public void SetParams(int numQns, float difficulty, QuestionManager.OpMode opMode)
     {
-        musicVol = PlayerPrefs.GetFloat("MusicVol");
-        Debug.Log(musicVol);
-        if (musicVol == 0.001f)
-        {
-            musicVol = 0.8f;
-            PlayerPrefs.SetFloat("MusicVol", 0.8f);
-            PlayerPrefs.Save();
-        }
-        mixer.SetFloat("MusicVol", Mathf.Log10(musicVol) * 20);
+        this.numQns = numQns;
+        runnerDifficulty = difficulty;
+        runnerOpMode = opMode;
     }
 
-    private void SetSliders()
-    {
-        musicSlider.value = musicVol;
-    }
+
 }
