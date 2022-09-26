@@ -2,9 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-
-public class MainMenu : MonoBehaviour
+public class MenuButton : MonoBehaviour
 {
+
+    public int numQns;
+    public float difficulty;
+    public QuestionManager.OpMode opMode;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -17,14 +21,10 @@ public class MainMenu : MonoBehaviour
         
     }
 
-    public void LoadScene(string name)
+    public void LoadLevel()
     {
-        SceneManager.LoadScene(name);
-    }
-
-    public void QuitGame()
-    {
-        Application.Quit();
+        LevelManager.instance.SetParams(numQns, difficulty, opMode);
+        SceneManager.LoadScene("RunnerGame");
     }
 
 }
