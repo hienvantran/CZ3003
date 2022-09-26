@@ -16,7 +16,8 @@ public class QuestionManager : MonoBehaviour
 
     [Header("Game Settings")]
     [SerializeField] private OpMode opMode;
-    [SerializeField] private float speed = 1f;
+    [SerializeField] private float baseSpeed = 1f;
+    private float curSpeed;
 
     private AudioSource audioSauce;
     [SerializeField] private AudioClip correctSfx;
@@ -24,6 +25,7 @@ public class QuestionManager : MonoBehaviour
     [SerializeField] private AudioMixer mixer;
 
     public static QuestionManager instance;
+    private BGScroller[] BGs;
     private int num1, num2, answer;
     private int score = 0;
     private int combo = 0;
@@ -35,8 +37,11 @@ public class QuestionManager : MonoBehaviour
     private bool isPlaying = false;
     private bool isEndless = false;
     private int numQns = 10;
+    private float difficulty = 1;
     private int qnIdx = 1;
     public bool isDebug = true;
+
+    LevelManager lm;
 
     //Awake
     void Awake()
@@ -50,10 +55,9 @@ public class QuestionManager : MonoBehaviour
     {
         activeOptions = new List<GameObject>();
         audioSauce = GetComponent<AudioSource>();
-        //SetVolume();
-        //if (isDebug)
-        //    StartLevel(10, opMode);
-
+        lm = LevelManager.instance;
+        
+        StartLevel();
     }
 
     //Update
@@ -62,15 +66,21 @@ public class QuestionManager : MonoBehaviour
         //Interval();
     }
 
-    public void StartLevel(int numQns, OpMode mode)
+    public void StartLevel()
     {
         if (isPlaying)
             return;
         isPlaying = true;
-        this.numQns = numQns;
-        opMode = mode;
+        difficulty = lm.runnerDifficulty;
+        opMode = lm.runnerOpMode;
+        numQns = lm.numQns;
         qnIdx = 0;
         intervalTime = 3f;
+        curSpeed = baseSpeed;
+        BGs = FindObjectsOfType<BGScroller>();
+        foreach (BGScroller bg in BGs)
+            bg.UpdateSpeed();
+
         StartCoroutine(NextQuestion());
     }
 
@@ -89,8 +99,9 @@ public class QuestionManager : MonoBehaviour
         //Addition
         if (opMode == OpMode.ADD)
         {
-            num1 = Random.Range(1, 10);
-            num2 = Random.Range(1, 10);
+            Debug.Log("Difficulty:" + difficulty);
+            num1 = Random.Range(1, Mathf.RoundToInt(6 * difficulty));
+            num2 = Random.Range(1, Mathf.RoundToInt(6 * difficulty));
             //set qn and ans
             questionText.SetText(string.Format("Qn {0}: {1} + {2} = ?", qnIdx, num1, num2));
             ans = num1 + num2;
@@ -98,7 +109,7 @@ public class QuestionManager : MonoBehaviour
         //Subtraction
         else if (opMode == OpMode.SUB)
         {
-            num1 = Random.Range(2, 10);
+            num1 = Random.Range(2, Mathf.RoundToInt(6 * difficulty));
             num2 = Random.Range(1, num1);
             //set qn and ans
             questionText.SetText(string.Format("Qn {0}: {1} - {2} = ?", qnIdx, num1, num2));
@@ -107,8 +118,8 @@ public class QuestionManager : MonoBehaviour
         //Multiplication
         if (opMode == OpMode.MUL)
         {
-            num1 = Random.Range(2, 10);
-            num2 = Random.Range(2, 11-num1);
+            num1 = Random.Range(2, Mathf.RoundToInt(6 * difficulty));
+            num2 = Random.Range(2, Mathf.RoundToInt(7 * difficulty) - num1);
             //set qn and ans
             questionText.SetText(string.Format("Qn {0}: {1} X {2} = ?", qnIdx, num1, num2));
             ans = num1 * num2;
@@ -116,7 +127,7 @@ public class QuestionManager : MonoBehaviour
         //Division
         if (opMode == OpMode.DIV)
         {
-            num1 = Random.Range(2, 10);
+            num1 = Random.Range(2, Mathf.RoundToInt(6 * difficulty));
             num2 = Random.Range(1, num1);
 
             int remainder = num1 % num2;
@@ -160,12 +171,19 @@ public class QuestionManager : MonoBehaviour
         {
             combo++;
             score += combo * 1;
+            if (combo > 2)
+                curSpeed *= 1.2f;
+            foreach (BGScroller bg in BGs)
+                bg.UpdateSpeed();
             audioSauce.clip = correctSfx;
             questionText.SetText("Correct!");
         }
         else
         {
             combo = 0;
+            curSpeed = baseSpeed;
+            foreach (BGScroller bg in BGs)
+                bg.UpdateSpeed();
             audioSauce.clip = wrongSfx;
             questionText.SetText("Incorrect!");
         }
@@ -225,7 +243,7 @@ public class QuestionManager : MonoBehaviour
     //Get Game speed
     public float GetGameSpeed()
     {
-        return speed;
+        return curSpeed;
     }
 
     //shuffle list
