@@ -41,24 +41,7 @@ public class CreateQnItem : MonoBehaviour
     }
     public string getQnString()
     {
-        char opSymbol = '+';
-        switch (op)
-        {
-            case 0:
-                opSymbol = '+';
-                break;
-            case 1:
-                opSymbol = '-';
-                break;
-            case 2:
-                opSymbol = 'x';
-                break;
-            case 3:
-                opSymbol = '÷';
-                break;
-        }
-
-        return string.Format("Q{0}. {1} {2} {3}", qnNumber, num1, opSymbol, num2);
+        return string.Format("{0},{1},{2},{3}", qnNumber, num1, op, num2);
     }
 
     //check if this question is valid

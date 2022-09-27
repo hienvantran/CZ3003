@@ -6,7 +6,7 @@ using TMPro;
 
 public class QuestionManager : MonoBehaviour
 {
-    public enum OpMode { ADD, SUB, MUL, DIV }
+    public enum OpMode { ADD, SUB, MUL, DIV, CUS }
 
     [SerializeField] private TextMeshProUGUI questionText;
     [SerializeField] private TextMeshProUGUI scoreText;
@@ -32,7 +32,7 @@ public class QuestionManager : MonoBehaviour
     private List<GameObject> activeOptions;
     private float intervalTime;
     private bool isInterval = false;
-
+    private List<string> customQs;
     
     private bool isPlaying = false;
     private bool isEndless = false;
@@ -74,6 +74,7 @@ public class QuestionManager : MonoBehaviour
         difficulty = lm.runnerDifficulty;
         opMode = lm.runnerOpMode;
         numQns = lm.numQns;
+        customQs = lm.customQuestions;
         qnIdx = 0;
         intervalTime = 3f;
         curSpeed = baseSpeed;
@@ -87,7 +88,14 @@ public class QuestionManager : MonoBehaviour
     //Create a new question
     private void NewQuestion()
     {
-        answer = GenerateOptions(GenerateQuestion());
+        if (opMode != OpMode.CUS)
+        {
+            answer = GenerateOptions(GenerateQuestion());
+        }
+        else
+        {
+            answer = GenerateOptions(GenerateQuestionCustomPool());
+        }
     }
 
     //Generate Question
@@ -160,6 +168,53 @@ public class QuestionManager : MonoBehaviour
                 }
             }
         }
+        return ans;
+    }
+
+    //Generate Question from custom pool
+    private int GenerateQuestionCustomPool()
+    {
+        int ans = 0;
+
+        if (customQs.Count > 0)
+        {
+            string nextqn = customQs[0];
+            string[] tok = nextqn.Split(',');
+
+            num1 = int.Parse(tok[1]);
+            num2 = int.Parse(tok[2]);
+
+            switch (tok[2])
+            {
+                case "0":
+                    questionText.SetText(string.Format("Qn {0}: {1} + {2} = ?", qnIdx, num1, num2));
+                    ans = num1 + num2;
+                    break;
+                case "1":
+                    questionText.SetText(string.Format("Qn {0}: {1} - {2} = ?", qnIdx, num1, num2));
+                    ans = num1 - num2;
+                    break;
+                case "2":
+                    questionText.SetText(string.Format("Qn {0}: {1} x {2} = ?", qnIdx, num1, num2));
+                    ans = num1 * num2;
+                    break;
+                case "3":
+                    questionText.SetText(string.Format("Qn {0}: {1} ÷ {2} = ?", qnIdx, num1, num2));
+                    ans = num1 / num2;
+                    break;
+                default:
+                    questionText.SetText(string.Format("Qn {0}: {1} + {2} = ?", qnIdx, num1, num2));
+                    ans = num1 + num2;
+                    break;
+            }
+
+            customQs.RemoveAt(0);
+        }
+        else
+        {
+            Debug.Log("end of custom questions");
+        }
+
         return ans;
     }
 

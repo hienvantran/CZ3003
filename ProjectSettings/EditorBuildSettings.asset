@@ -17,4 +17,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/AddMode.unity
     guid: f9cf0d31857d22c49bdb1399657dcdbd
+  - enabled: 1
+    path: Assets/Scenes/CustomLevelSetup.unity
+    guid: 9aa4dcb6cfa7a0346a8951ca290cea81
+  - enabled: 1
+    path: Assets/Scenes/CusMode.unity
+    guid: 2b4987c496365ec4db6dc07859e2912c
   m_configObjects: {}

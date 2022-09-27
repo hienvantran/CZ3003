@@ -7,12 +7,11 @@ using TMPro;
 public class CustomLevelSetup : MonoBehaviour
 {
     [SerializeField] private Transform scrollContent;
-    [SerializeField] private GameObject questionPrefab;
-    [SerializeField] private Slider numQnInput, gameSpeedInput;
-    [SerializeField] private TextMeshProUGUI numQnLabel, gameSpeedLabel, alertLabel;
+    [SerializeField] private GameObject questionPrefab, createdPanel, seedBox;
+    [SerializeField] private Slider numQnInput;
+    [SerializeField] private TextMeshProUGUI numQnLabel, alertLabel;
 
     private int questionCount = 5;
-    private float gameSpeed = 1f;
     private List<GameObject> qnList;
 
     //Start
@@ -26,6 +25,8 @@ public class CustomLevelSetup : MonoBehaviour
             scrollContent.GetChild(i).GetComponent<CreateQnItem>().setValues(i + 1);
             qnList.Add(scrollContent.GetChild(i).gameObject);
         }
+
+        seedBox.GetComponent<TMP_InputField>().onFocusSelectAll = true;
     }
 
     //Create Scroll Content
@@ -59,13 +60,6 @@ public class CustomLevelSetup : MonoBehaviour
         CreateScrollContent();
     }
 
-    //On Game Speed input change
-    public void GameSpeedChange()
-    {
-        gameSpeed = gameSpeedInput.value;
-        gameSpeedLabel.SetText("Game Speed: " + gameSpeed);
-    }
-
     //Create Button Click
     public void CreateClick()
     {
@@ -97,11 +91,25 @@ public class CustomLevelSetup : MonoBehaviour
         //valid
         else
         {
-            //for now, print out the questions
+            //get question List as string
+            List<string> qList = new List<string>();
             foreach (GameObject g in qnList)
             {
-                Debug.Log(g.GetComponent<CreateQnItem>().getQnString());
+                qList.Add(g.GetComponent<CreateQnItem>().getQnString());
             }
+
+            //create level seed
+            string levelSeed = SeedEncoder.CreateSeed(questionCount, qList);
+            Debug.Log("seed: " + levelSeed);
+
+            createdPanel.SetActive(true);
+            seedBox.GetComponent<TMP_InputField>().text = levelSeed;
         }
+    }
+
+    //On close button click
+    public void ClosePanel()
+    {
+        createdPanel.SetActive(false);
     }
 }
