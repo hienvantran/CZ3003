@@ -39,8 +39,7 @@ public class MenuButton : MonoBehaviour
         //decode seed for options
         Debug.Log("it's custom time");
         string seed = seedInput.text;
-        (int, List<string>) seedParams = SeedEncoder.DecodeSeed(seed);
-
+        (int, string) seedParams = SeedEncoder.DecodeSeed(seed);
 
         LevelManager.instance.SetParams(seedParams.Item1, 1, QuestionManager.OpMode.CUS, seedParams.Item2);
         SceneManager.LoadScene("RunnerGame");

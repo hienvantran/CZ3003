@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -32,7 +33,7 @@ public class QuestionManager : MonoBehaviour
     private List<GameObject> activeOptions;
     private float intervalTime;
     private bool isInterval = false;
-    private List<string> customQs;
+    private string[] customQs;
     
     private bool isPlaying = false;
     private bool isEndless = false;
@@ -74,7 +75,8 @@ public class QuestionManager : MonoBehaviour
         difficulty = lm.runnerDifficulty;
         opMode = lm.runnerOpMode;
         numQns = lm.numQns;
-        customQs = lm.customQuestions;
+        customQs = lm.customQuestions.Split("!");
+        customQs = customQs.Skip(1).ToArray();
         qnIdx = 0;
         intervalTime = 3f;
         curSpeed = baseSpeed;
@@ -175,45 +177,48 @@ public class QuestionManager : MonoBehaviour
     private int GenerateQuestionCustomPool()
     {
         int ans = 0;
+        string nextqn = customQs[qnIdx-1];
 
-        if (customQs.Count > 0)
+        Debug.Log(nextqn);
+
+        if (nextqn.IndexOf("A") != -1)
         {
-            string nextqn = customQs[0];
-            string[] tok = nextqn.Split(',');
+            int opInd = nextqn.IndexOf("A");
+            num1 = int.Parse(nextqn.Substring(0, opInd));
+            num2 = int.Parse(nextqn.Substring(opInd + 1));
 
-            num1 = int.Parse(tok[1]);
-            num2 = int.Parse(tok[2]);
-
-            switch (tok[2])
-            {
-                case "0":
-                    questionText.SetText(string.Format("Qn {0}: {1} + {2} = ?", qnIdx, num1, num2));
-                    ans = num1 + num2;
-                    break;
-                case "1":
-                    questionText.SetText(string.Format("Qn {0}: {1} - {2} = ?", qnIdx, num1, num2));
-                    ans = num1 - num2;
-                    break;
-                case "2":
-                    questionText.SetText(string.Format("Qn {0}: {1} x {2} = ?", qnIdx, num1, num2));
-                    ans = num1 * num2;
-                    break;
-                case "3":
-                    questionText.SetText(string.Format("Qn {0}: {1} ÷ {2} = ?", qnIdx, num1, num2));
-                    ans = num1 / num2;
-                    break;
-                default:
-                    questionText.SetText(string.Format("Qn {0}: {1} + {2} = ?", qnIdx, num1, num2));
-                    ans = num1 + num2;
-                    break;
-            }
-
-            customQs.RemoveAt(0);
+            questionText.SetText(string.Format("Qn {0}: {1} + {2} = ?", qnIdx, num1, num2));
+            ans = num1 + num2;
         }
-        else
+        else if (nextqn.IndexOf("S") != -1)
         {
-            Debug.Log("end of custom questions");
+            int opInd = nextqn.IndexOf("S");
+            num1 = int.Parse(nextqn.Substring(0, opInd));
+            num2 = int.Parse(nextqn.Substring(opInd + 1));
+
+            questionText.SetText(string.Format("Qn {0}: {1} - {2} = ?", qnIdx, num1, num2));
+            ans = num1 - num2;
         }
+        else if (nextqn.IndexOf("M") != -1)
+        {
+            int opInd = nextqn.IndexOf("M");
+            num1 = int.Parse(nextqn.Substring(0, opInd));
+            num2 = int.Parse(nextqn.Substring(opInd + 1));
+
+            questionText.SetText(string.Format("Qn {0}: {1} x {2} = ?", qnIdx, num1, num2));
+            ans = num1 * num2;
+        }
+        else if (nextqn.IndexOf("D") != -1)
+        {
+            int opInd = nextqn.IndexOf("D");
+            num1 = int.Parse(nextqn.Substring(0, opInd));
+            num2 = int.Parse(nextqn.Substring(opInd + 1));
+
+            questionText.SetText(string.Format("Qn {0}: {1} ÷ {2} = ?", qnIdx, num1, num2));
+            ans = num1 / num2;
+        }
+
+        Debug.Log(num1 + ", " + num2 + ", ans:" + ans);
 
         return ans;
     }
