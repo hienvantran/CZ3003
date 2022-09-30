@@ -23,4 +23,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/CusMode.unity
     guid: 2b4987c496365ec4db6dc07859e2912c
+  - enabled: 1
+    path: Assets/Scenes/LeaderBoard.unity
+    guid: 82e3e8f6d9b268b4b806731d8f57cf62
   m_configObjects: {}
