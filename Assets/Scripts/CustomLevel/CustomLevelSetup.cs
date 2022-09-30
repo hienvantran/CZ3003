@@ -102,6 +102,10 @@ public class CustomLevelSetup : MonoBehaviour
             string levelSeed = SeedEncoder.CreateSeed(questionCount, qList);
             Debug.Log("seed: " + levelSeed);
 
+            //create level id
+            string levelId = SeedEncoder.CreateLevelID();
+            Debug.Log("level id: " + levelId);
+
             createdPanel.SetActive(true);
             seedBox.GetComponent<TMP_InputField>().text = levelSeed;
         }

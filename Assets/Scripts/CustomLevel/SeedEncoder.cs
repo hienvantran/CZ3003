@@ -21,4 +21,19 @@ public static class SeedEncoder
         int questionCount = int.Parse(seed.Remove(2));
         return (questionCount, questionString);
     }
+
+    //Create level ID
+    public static string CreateLevelID()
+    {
+        const string chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+        string id = string.Empty;
+
+        for (int i = 0; i < 6; i++)
+        {
+            id += chars[UnityEngine.Random.Range(0, chars.Length)];
+        }
+
+        return id;
+    }
 }
