@@ -19,9 +19,9 @@ public class SelectionManager : MonoBehaviour
     private Dictionary<ValueTuple<string, string>, List<string>> levelsInZones;
 
     public delegate void OnSelectionChangedDelegate();
-    public event OnSelectionChangedDelegate OnSelectionChanged;
+    public event OnSelectionChangedDelegate SelectionChanged;
 
-    void Start()
+    void Awake()
     {
         GetWorldZoneLevelData();
         UpdateWorldOptions();
@@ -85,14 +85,21 @@ public class SelectionManager : MonoBehaviour
         {
             levelDropdown.AddOptions(levelsInZones[(worldSelected, zoneSelected)]);
         }
-        OnSelectionChanged();
+    }
 
+    protected virtual void OnSelectionChanged() //protected virtual method
+    {
+        SelectionChanged?.Invoke();
     }
 
     void SetAutoUpdateOnValueChanged()
     {
-        worldDropdown.onValueChanged.AddListener(delegate { UpdateZoneOptions(); });
-        zoneDropdown.onValueChanged.AddListener(delegate { UpdateLevelOptions(); });
+        worldDropdown.onValueChanged.AddListener(delegate
+            { UpdateZoneOptions(); OnSelectionChanged(); });
+        zoneDropdown.onValueChanged.AddListener(delegate
+            { UpdateLevelOptions(); OnSelectionChanged(); });
+        levelDropdown.onValueChanged.AddListener(delegate
+            { OnSelectionChanged(); OnSelectionChanged(); });
     }
 
     private void ClearOptionsAndSetDefault(TMP_Dropdown dropdown)
