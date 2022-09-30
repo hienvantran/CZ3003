@@ -10,6 +10,7 @@ public class LevelManager : MonoBehaviour
     public int numQns = 10;
     public float runnerDifficulty = 1;
     public QuestionManager.OpMode runnerOpMode = QuestionManager.OpMode.ADD;
+    public string customQuestions;
 
     private void Awake()
     {
@@ -28,11 +29,12 @@ public class LevelManager : MonoBehaviour
 
     }
 
-    public void SetParams(int numQns, float difficulty, QuestionManager.OpMode opMode)
+    public void SetParams(int numQns, float difficulty, QuestionManager.OpMode opMode, string cusQuestions = "")
     {
         this.numQns = numQns;
         runnerDifficulty = difficulty;
         runnerOpMode = opMode;
+        customQuestions = cusQuestions;
     }
 
 

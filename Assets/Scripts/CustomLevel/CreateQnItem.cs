@@ -45,20 +45,19 @@ public class CreateQnItem : MonoBehaviour
         switch (op)
         {
             case 0:
-                opSymbol = '+';
+                opSymbol = 'A';
                 break;
             case 1:
-                opSymbol = '-';
+                opSymbol = 'S';
                 break;
             case 2:
-                opSymbol = 'x';
+                opSymbol = 'M';
                 break;
             case 3:
-                opSymbol = '÷';
+                opSymbol = 'D';
                 break;
         }
-
-        return string.Format("Q{0}. {1} {2} {3}", qnNumber, num1, opSymbol, num2);
+        return string.Format("!{0}{1}{2}", num1, opSymbol, num2);
     }
 
     //check if this question is valid
