@@ -54,7 +54,7 @@ public class SelectionManager : MonoBehaviour
             "Sub Begin Lvl 1", "Sub Begin Lvl 2", "Sub Begin Lvl 3"
             });
 
-        levelsInZones.Add(("Addition", "Advanced"), new List<string>() {
+        levelsInZones.Add(("Subtraction", "Advanced"), new List<string>() {
             "Sub Adv Lvl 1",
             });
     }

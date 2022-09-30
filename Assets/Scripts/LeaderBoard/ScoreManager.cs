@@ -78,6 +78,7 @@ public class ScoreManager : MonoBehaviour
         {
             Destroy(row.gameObject);
         }
+        rowUiList.Clear();
     }
     private void DisplayRows()
     {
