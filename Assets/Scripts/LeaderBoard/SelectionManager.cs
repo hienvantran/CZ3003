@@ -18,6 +18,9 @@ public class SelectionManager : MonoBehaviour
     // keep tracks of the list of levels each zone contains
     private Dictionary<ValueTuple<string, string>, List<string>> levelsInZones;
 
+    public delegate void OnSelectionChangedDelegate();
+    public event OnSelectionChangedDelegate OnSelectionChanged;
+
     void Start()
     {
         GetWorldZoneLevelData();
@@ -65,7 +68,7 @@ public class SelectionManager : MonoBehaviour
     void UpdateZoneOptions()
     {
         ClearOptionsAndSetDefault(zoneDropdown);
-        string worldSelected = GetDropdownItemSelectedText(worldDropdown);
+        string worldSelected = GetWorldSelected();
         if (worldSelected != defaultOptionAll)
         {
             zoneDropdown.AddOptions(zonesInWorld[worldSelected]);
@@ -76,12 +79,14 @@ public class SelectionManager : MonoBehaviour
     void UpdateLevelOptions()
     {
         ClearOptionsAndSetDefault(levelDropdown);
-        string worldSelected = GetDropdownItemSelectedText(worldDropdown);
-        string zoneSelected = GetDropdownItemSelectedText(zoneDropdown);
+        string worldSelected = GetWorldSelected();
+        string zoneSelected = GetZoneSelected();
         if (worldSelected != defaultOptionAll && zoneSelected != defaultOptionAll)
         {
             levelDropdown.AddOptions(levelsInZones[(worldSelected, zoneSelected)]);
         }
+        OnSelectionChanged();
+
     }
 
     void SetAutoUpdateOnValueChanged()
@@ -94,6 +99,21 @@ public class SelectionManager : MonoBehaviour
     {
         dropdown.ClearOptions();
         dropdown.AddOptions(new List<string> { defaultOptionAll });
+    }
+
+    public string GetWorldSelected()
+    {
+        return GetDropdownItemSelectedText(worldDropdown);
+    }
+
+    public string GetZoneSelected()
+    {
+        return GetDropdownItemSelectedText(zoneDropdown);
+    }
+
+    public string GetLevelSelected()
+    {
+        return GetDropdownItemSelectedText(levelDropdown);
     }
 
     private string GetDropdownItemSelectedText(TMP_Dropdown dropdown)

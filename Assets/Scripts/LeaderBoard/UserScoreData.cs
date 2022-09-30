@@ -17,9 +17,9 @@ public class UserScoreData
         userScores.Add(userScore);
     }
 
-    public IEnumerable<UserScore> GetHighScores()
+    public UserScore[] GetScoresDescendingOrder()
     {
-        return userScores.OrderByDescending(userScore => userScore.score);
+        return userScores.OrderByDescending(userScore => userScore.score).ToArray();
     }
 }
 
