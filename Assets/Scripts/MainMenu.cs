@@ -17,7 +17,7 @@ public class MainMenu : MonoBehaviour
         
     }
 
-    public void LoadLevel(string name)
+    public void LoadScene(string name)
     {
         SceneManager.LoadScene(name);
     }
@@ -26,4 +26,5 @@ public class MainMenu : MonoBehaviour
     {
         Application.Quit();
     }
+
 }

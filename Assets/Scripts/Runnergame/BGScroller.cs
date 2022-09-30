@@ -10,7 +10,7 @@ public class BGScroller : MonoBehaviour
 
     private void Start()
     {
-        this.speed = QuestionManager.instance.GetGameSpeed() * speedMult;
+        //this.speed = QuestionManager.instance.GetGameSpeed() * speedMult;
     }
 
     void Update()
@@ -20,5 +20,10 @@ public class BGScroller : MonoBehaviour
         {
             backgroundRenderer.material.mainTextureOffset = Vector2.zero;
         }
+    }
+
+    public void UpdateSpeed()
+    {
+        this.speed = QuestionManager.instance.GetGameSpeed() * speedMult;
     }
 }

@@ -8,13 +8,19 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/MainMenu.unity
     guid: 6c1db08f3597ee14fb51305e3afc930d
-  - enabled: 0
-    path: Assets/Scenes/Level_1.unity
-    guid: 2cf0aeca6ffb17c429f46d15dd05f94b
+  - enabled: 1
+    path: Assets/Scenes/ModeSelect.unity
+    guid: 4973a5e3d528ff8448dcd560634caa4c
   - enabled: 1
     path: Assets/Scenes/RunnerGame.unity
     guid: 43df63f4bb9cc5a43b94ba009519e512
   - enabled: 1
-    path: Assets/Scenes/LeaderBoard.unity
-    guid: 82e3e8f6d9b268b4b806731d8f57cf62
+    path: Assets/Scenes/AddMode.unity
+    guid: f9cf0d31857d22c49bdb1399657dcdbd
+  - enabled: 1
+    path: Assets/Scenes/CustomLevelSetup.unity
+    guid: 9aa4dcb6cfa7a0346a8951ca290cea81
+  - enabled: 1
+    path: Assets/Scenes/CusMode.unity
+    guid: 2b4987c496365ec4db6dc07859e2912c
   m_configObjects: {}
