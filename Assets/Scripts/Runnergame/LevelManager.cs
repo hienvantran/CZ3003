@@ -63,12 +63,12 @@ public class LevelManager : MonoBehaviour
     }
 
     //Updates the user's progress of the normal levels
-    public void UpdateUserProgress(int score, bool unlockNext)
+    public void UpdateUserProgress(int score, bool unlockNext, bool isCus)
     {
         //to edit: maybe check firebase auth confirm user login
 
-        //update the level progress
-        if (unlockNext)
+        //update the level progress (for non custom)
+        if (!isCus && unlockNext)
         {
             switch (currentLevel[0])
             {

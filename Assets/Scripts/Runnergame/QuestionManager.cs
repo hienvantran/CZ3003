@@ -299,7 +299,11 @@ public class QuestionManager : MonoBehaviour
 
         //show end menu
         string endText = string.Format("Correct: {0}/{1}\nScore: {2}", correctCount, numQns, score);
-        if ((correctCount >= numQns / 2f) && (int)char.GetNumericValue(LevelManager.instance.currentLevel[1]) < 3)
+
+        //only check unlock for non custom
+        if (opMode != OpMode.CUS 
+            && (correctCount >= numQns / 2f) 
+            && (int)char.GetNumericValue(LevelManager.instance.currentLevel[1]) < 3)
         {
             endText += "\nNext Level Unlocked!";
         }
@@ -307,7 +311,7 @@ public class QuestionManager : MonoBehaviour
         endMenu.SetActive(true);
 
         //if at least 50% correct, also unlock next level
-        LevelManager.instance.UpdateUserProgress(score, (correctCount >= numQns / 2f));
+        LevelManager.instance.UpdateUserProgress(score, (correctCount >= numQns / 2f), opMode == OpMode.CUS);
     }
 
     //Get Game speed

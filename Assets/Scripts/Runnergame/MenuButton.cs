@@ -51,6 +51,7 @@ public class MenuButton : MonoBehaviour
         (int, string) seedParams = SeedEncoder.DecodeSeed(seed);
 
         LevelManager.instance.SetParams(seedParams.Item1, 1, QuestionManager.OpMode.CUS, seedParams.Item2);
+        LevelManager.instance.previousScene = SceneManager.GetActiveScene().name;
         SceneManager.LoadScene("RunnerGame");
     }
 
