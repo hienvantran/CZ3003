@@ -28,11 +28,17 @@ public class MenuButton : MonoBehaviour
         
     }
 
+    public void LoadScene(string name)
+    {
+        SceneManager.LoadScene(name);
+    }
+
     //Load normal
     public void LoadLevel()
     {
         LevelManager.instance.SetParams(numQns, difficulty, opMode);
         LevelManager.instance.SetLevel(levelString);
+        LevelManager.instance.previousScene = SceneManager.GetActiveScene().name;
         SceneManager.LoadScene("RunnerGame");
     }
 

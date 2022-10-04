@@ -12,8 +12,10 @@ public class LevelManager : MonoBehaviour
     public QuestionManager.OpMode runnerOpMode = QuestionManager.OpMode.ADD;
     public string customQuestions;
 
+
     public int addProgress = 0, subProgress = 0, mulProgress = 0, divProgress = 0;
     public string currentLevel = string.Empty;
+    public string previousScene = "";
 
     private void Awake()
     {
