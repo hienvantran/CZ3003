@@ -38,6 +38,16 @@ public class PauseMenu : MonoBehaviour
         SceneManager.LoadScene(name);
     }
 
+    public void QuitBtn()
+    {
+        Time.timeScale = 1;
+        PlayerPrefs.Save();
+        if (LevelManager.instance.previousScene != "")
+            SceneManager.LoadScene(LevelManager.instance.previousScene);
+        else
+            SceneManager.LoadScene("MainMenu");
+    }
+
     public void OpenMenu()
     {
         musicSlider.GetComponent<SetVolume>().UpdateSlider();

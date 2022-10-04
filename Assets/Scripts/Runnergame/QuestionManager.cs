@@ -13,7 +13,7 @@ public class QuestionManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI scoreText;
     [SerializeField] private TextMeshProUGUI comboText;
     [SerializeField] private List<GameObject> optionSpawnList;
-    [SerializeField] private GameObject optionPrefab;
+    [SerializeField] private GameObject optionPrefab, endMenu;
 
     [Header("Game Settings")]
     [SerializeField] private OpMode opMode;
@@ -30,6 +30,7 @@ public class QuestionManager : MonoBehaviour
     private int num1, num2, answer;
     private int score = 0;
     private int combo = 0;
+    private int correctCount = 0;
     private List<GameObject> activeOptions;
     private float intervalTime;
     private bool isInterval = false;
@@ -179,8 +180,6 @@ public class QuestionManager : MonoBehaviour
         int ans = 0;
         string nextqn = customQs[qnIdx-1];
 
-        Debug.Log(nextqn);
-
         if (nextqn.IndexOf("A") != -1)
         {
             int opInd = nextqn.IndexOf("A");
@@ -218,8 +217,6 @@ public class QuestionManager : MonoBehaviour
             ans = num1 / num2;
         }
 
-        Debug.Log(num1 + ", " + num2 + ", ans:" + ans);
-
         return ans;
     }
 
@@ -231,6 +228,7 @@ public class QuestionManager : MonoBehaviour
         {
             combo++;
             score += combo * 1;
+            correctCount++;
             if (combo > 2)
                 curSpeed *= 1.2f;
             foreach (BGScroller bg in BGs)
@@ -293,11 +291,27 @@ public class QuestionManager : MonoBehaviour
         }
     }
 
+    //End Level
     private void EndLevel()
     {
-        questionText.SetText(string.Format("Game Overrr (Temp)"));
+        //inform
+        questionText.SetText(string.Format("Level Completed!"));
 
-        //WIP
+        //show end menu
+        string endText = string.Format("Correct: {0}/{1}\nScore: {2}", correctCount, numQns, score);
+
+        //only check unlock for non custom
+        if (opMode != OpMode.CUS 
+            && (correctCount >= numQns / 2f) 
+            && (int)char.GetNumericValue(LevelManager.instance.currentLevel[1]) < 3)
+        {
+            endText += "\nNext Level Unlocked!";
+        }
+        endMenu.transform.Find("Summary").GetComponent<TextMeshProUGUI>().SetText(endText);
+        endMenu.SetActive(true);
+
+        //if at least 50% correct, also unlock next level
+        LevelManager.instance.UpdateUserProgress(score, (correctCount >= numQns / 2f), opMode == OpMode.CUS);
     }
 
     //Get Game speed
