@@ -53,6 +53,21 @@ public class FirebaseManager : MonoBehaviour
         });
     }
 
+    //tester function for firestore *DELETE WHEN NOT NEEDED ANYMORE*
+    public void test()
+    {
+        Debug.Log("button press");
+
+        //setting assignment
+        //firestoreManager.addAssignment("beeboo", "04!3A2!2M3!6S2!8D4");
+
+        //calling get assignment str
+        firestoreManager.getAssignmentQnsStrbyID("aBcDeF", result =>
+        {
+            Debug.Log("qn string retrieved is: " + result);
+        });
+    }
+
     private void InitializeFirebase()
     {
         Debug.Log("Setting up Firebase Auth");

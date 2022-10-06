@@ -49,7 +49,7 @@ public class UserAttempts
 
 public class FirestoreManager : MonoBehaviour
 {
-    public async void addUser (FirebaseUser User) {
+    public void addUser (FirebaseUser User) {
         FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
         DocumentReference users = db.Collection("users").Document(User.UserId);
         Dictionary<string, object> user = new Dictionary<string, object>
@@ -59,46 +59,45 @@ public class FirestoreManager : MonoBehaviour
                 { "Role", "Student" },
                 { "UID", User.UserId }
         };
-        await users.SetAsync(user).ContinueWithOnMainThread(task => {
+        users.SetAsync(user).ContinueWithOnMainThread(task => {
                 Debug.Log("Added data of new user document in the users collection.");
         });
     }
 
-    public async void addAssignment (string assignmentId, string qnsStr) {
+    public void addAssignment (string assignmentId, string qnsStr) {
         FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
         DocumentReference assignRef = db.Collection("assignments").Document(assignmentId);
 
         Dictionary<string, object> questionsStr = new Dictionary<string, object>
-                    {
-                            { "qnsString", qnsStr },
-                    };
-        await assignRef.SetAsync(questionsStr).ContinueWithOnMainThread(task => {
+        {
+                { "qnsString", qnsStr },
+        };
+        assignRef.SetAsync(questionsStr).ContinueWithOnMainThread(task => {
                 Debug.Log("Added assignment and its qnsStr document in the assignment collection.");
         });
     }
 
-    public async Task<string> getAssignmentQnsStrbyID(string assignID)
+    public void getAssignmentQnsStrbyID(string assignID, Action<string> result)
     {
         FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
         DocumentReference assignRef = db.Collection("assignments").Document(assignID);
         
-        return await assignRef.GetSnapshotAsync().ContinueWith((task) =>
-            {
-            var snapshot = task.Result;
-            string assignmentQnsStr = "";
-            if (snapshot.Exists)
-            {
-                Assignment assignment = snapshot.ConvertTo<Assignment>();
-                assignmentQnsStr = assignment.qnsString;
-            }
-            else
-            {
-                Debug.Log(String.Format("Document {0} does not exist!", snapshot.Id));
-            }
-            return assignmentQnsStr;
-            });
-        
-        
+        assignRef.GetSnapshotAsync().ContinueWith((task) =>
+        {
+        var snapshot = task.Result;
+        string assignmentQnsStr = "";
+        if (snapshot.Exists)
+        {
+            Assignment assignment = snapshot.ConvertTo<Assignment>();
+            assignmentQnsStr = assignment.qnsString;
+            result?.Invoke(assignmentQnsStr);
+        }
+        else
+        {
+            Debug.Log(String.Format("Document {0} does not exist!", snapshot.Id));
+        }
+        return;
+        });
     }
 
     public async Task<List<UserAttempts>> getAssignmentAttemptsbyID(string assignID)
