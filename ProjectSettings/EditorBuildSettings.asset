@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Scenes/TestFacebook.unity
+    guid: 82d8f5d5c90f338499fb57b37d225691
+  - enabled: 1
     path: Assets/Scenes/MainMenu.unity
     guid: 6c1db08f3597ee14fb51305e3afc930d
   - enabled: 1
@@ -17,15 +20,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/AddMode.unity
     guid: f9cf0d31857d22c49bdb1399657dcdbd
-  - enabled: 1
-    path: Assets/Scenes/MulMode.unity
-    guid: 2a32224123f14194090f8cb5c7b5555b
-  - enabled: 1
-    path: Assets/Scenes/SubMode.unity
-    guid: fe5ddcfd1c7d2804c85ff946a871d7cf
-  - enabled: 1
-    path: Assets/Scenes/DivMode.unity
-    guid: 9085fee7c226cdd41b740b2a6f0da594
   - enabled: 1
     path: Assets/Scenes/CustomLevelSetup.unity
     guid: 9aa4dcb6cfa7a0346a8951ca290cea81
