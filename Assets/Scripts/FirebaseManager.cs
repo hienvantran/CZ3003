@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using Firebase;
 using Firebase.Auth;
+using Firebase.Extensions;
 using TMPro;
 
 public class FirebaseManager : MonoBehaviour
 {
     public enum LoginState { IN, OUT }
-
+    [SerializeField] private FirestoreManager firestoreManager;
     //Firebase variables
     [Header("Firebase")]
     public DependencyStatus dependencyStatus;
@@ -43,11 +44,27 @@ public class FirebaseManager : MonoBehaviour
             {
                 //If they are avalible Initialize Firebase
                 InitializeFirebase();
+                
             }
             else
             {
                 Debug.LogError("Could not resolve all Firebase dependencies: " + dependencyStatus);
             }
+        });
+    }
+
+    //tester function for firestore *DELETE WHEN NOT NEEDED ANYMORE*
+    public void test()
+    {
+        Debug.Log("button press");
+
+        //setting assignment
+        //firestoreManager.addAssignment("beeboo", "04!3A2!2M3!6S2!8D4");
+
+        //calling get assignment str
+        firestoreManager.getAssignmentQnsStrbyID("aBcDeF", result =>
+        {
+            Debug.Log("qn string retrieved is: " + result);
         });
     }
 
@@ -233,7 +250,10 @@ public class FirebaseManager : MonoBehaviour
                     }
                     else
                     {
+                        firestoreManager.addUser(User);
                         //successful registration, go back to login screen
+                        Debug.LogFormat("User signed in successfully: {0} ({1})",
+                        User.DisplayName, User.UserId);
                         statusRegisterText.text = "";
                         statusLoginText.text = "Account Created";
                         this.BackButton();
