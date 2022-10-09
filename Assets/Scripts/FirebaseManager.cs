@@ -53,21 +53,6 @@ public class FirebaseManager : MonoBehaviour
         });
     }
 
-    //tester function for firestore *DELETE WHEN NOT NEEDED ANYMORE*
-    public void test()
-    {
-        Debug.Log("button press");
-
-        //setting assignment
-        //firestoreManager.addAssignment("beeboo", "04!3A2!2M3!6S2!8D4");
-
-        //calling get assignment str
-        firestoreManager.getAssignmentQnsStrbyID("aBcDeF", result =>
-        {
-            Debug.Log("qn string retrieved is: " + result);
-        });
-    }
-
     private void InitializeFirebase()
     {
         Debug.Log("Setting up Firebase Auth");
@@ -250,13 +235,15 @@ public class FirebaseManager : MonoBehaviour
                     }
                     else
                     {
-                        firestoreManager.addUser(User);
-                        //successful registration, go back to login screen
-                        Debug.LogFormat("User signed in successfully: {0} ({1})",
-                        User.DisplayName, User.UserId);
-                        statusRegisterText.text = "";
-                        statusLoginText.text = "Account Created";
-                        this.BackButton();
+                        //add firestore user data
+                        firestoreManager.addUser(User, res =>
+                        {
+                            //successful registration, go back to login screen
+                            Debug.LogFormat("User Registered: {0} ({1})", res["Name"], res["UID"]);
+                            statusRegisterText.text = "";
+                            statusLoginText.text = "Account Created";
+                            this.BackButton();
+                        });
                     }
                 }
             }

@@ -49,6 +49,8 @@ public class UserAttempts
 
 public class FirestoreManager : MonoBehaviour
 {
+    //add user details to firestore
+    //* add functions don't actually need the calllback action but good to have incase you want to notify when done or smth
     public void addUser (FirebaseUser User, Action<Dictionary<string, object>> result) {
         FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
         DocumentReference users = db.Collection("users").Document(User.UserId);
@@ -65,6 +67,8 @@ public class FirestoreManager : MonoBehaviour
         });
     }
 
+    //add assignment to firestore
+    //* add functions don't actually need the calllback action but good to have incase you want to notify when done or smth
     public void addAssignment (string assignmentId, string qnsStr, Action<Dictionary<string, object>> result) {
         FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
         DocumentReference assignRef = db.Collection("assignments").Document(assignmentId);
@@ -79,6 +83,7 @@ public class FirestoreManager : MonoBehaviour
         });
     }
 
+    //get assignment question string by assignment ID/Key
     public void getAssignmentQnsStrbyID(string assignID, Action<string> result)
     {
         FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
@@ -102,6 +107,7 @@ public class FirestoreManager : MonoBehaviour
         });
     }
 
+    //get user attempts for an assignment ID/Key
     public void getAssignmentAttemptsbyID(string assignID, Action<List<UserAttempts>> result)
     {
         FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
@@ -123,6 +129,8 @@ public class FirestoreManager : MonoBehaviour
         });
     }
 
+    //add a user attempt for an assignment ID/Key
+    //* add functions don't actually need the calllback action but good to have incase you want to notify when done or smth
     public void addUserAttempts (string assignmentId, string userId, string userScore, Action<Dictionary<string, object>> result) {
         FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
         DocumentReference assignRef = db.Collection("assignments").Document(assignmentId);
@@ -139,6 +147,7 @@ public class FirestoreManager : MonoBehaviour
         });
     }
 
+    //get a specific user's attempt for an assignment ID/Key
     public void getSpecificUserAttempt(string assignmentId, string userId, Action<UserAttempts> result)
     {
         FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
