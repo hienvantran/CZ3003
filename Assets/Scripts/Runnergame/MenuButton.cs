@@ -58,7 +58,7 @@ public class MenuButton : MonoBehaviour
         {
             Debug.Log("qnStr is : " + res);
             (int, string) seedParams = SeedEncoder.DecodeSeed(res);
-            LevelManager.instance.SetParams(seedParams.Item1, 1, QuestionManager.OpMode.CUS, seedParams.Item2);
+            LevelManager.instance.SetParams(seedParams.Item1, 1, QuestionManager.OpMode.CUS, seedParams.Item2, seed);
         });
 
         //wait

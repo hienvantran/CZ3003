@@ -290,7 +290,7 @@ public class FirestoreManager : MonoBehaviour
 
         Dictionary<string, object> userAttempt = new Dictionary<string, object>
         {
-                { "score", userScore }
+            { "score", userScore }
         };
 
         userAttemptsRef.SetAsync(userAttempt).ContinueWithOnMainThread(task => {

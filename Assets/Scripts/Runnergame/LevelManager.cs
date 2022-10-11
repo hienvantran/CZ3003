@@ -11,8 +11,7 @@ public class LevelManager : MonoBehaviour
     public float runnerDifficulty = 1;
     public QuestionManager.OpMode runnerOpMode = QuestionManager.OpMode.ADD;
     public string customQuestions;
-
-    //public FirestoreManager firestoreManager;
+    public string currentSeed;
 
     public int addProgress = 0, subProgress = 0, mulProgress = 0, divProgress = 0;
     public string currentLevel = string.Empty;
@@ -37,12 +36,13 @@ public class LevelManager : MonoBehaviour
 
     }
 
-    public void SetParams(int numQns, float difficulty, QuestionManager.OpMode opMode, string cusQuestions = "")
+    public void SetParams(int numQns, float difficulty, QuestionManager.OpMode opMode, string cusQuestions = "", string seed = "")
     {
         this.numQns = numQns;
         runnerDifficulty = difficulty;
         runnerOpMode = opMode;
         customQuestions = cusQuestions;
+        currentSeed = seed;
     }
 
     //set current level
@@ -83,36 +83,64 @@ public class LevelManager : MonoBehaviour
             return;
         }
 
-        //update the level progress (for non custom)
-        if (!isCus && unlockNext)
+        //then also push to firestore the completion records to LevelScore / Assignment collection
+        if (isCus)
         {
+            //add user attempt for assignment
+            FirestoreManager.instance.addUserAssignmentAttempts(currentSeed, FirebaseManager.instance.User.UserId, score.ToString(), res =>
+            {
+                Debug.Log("Pushed user(" + FirebaseManager.instance.User.UserId + ") attempt for " + currentSeed + ", score: " + score);
+            });
+        }
+        else
+        {
+            string lvlID = "";
+            //add user attempt for level and also update progression field if needed
             switch (currentLevel[0])
             {
                 case 'A':
                     addProgress = (int)char.GetNumericValue(currentLevel[1]);
+                    lvlID = "add-" + addProgress.ToString();
                     //push firestore user AddProgress field
-                    FirestoreManager.instance.updateUserWorldProgress(FirebaseManager.instance.User, "AddProgress", addProgress);
+                    if (unlockNext)
+                    {
+                        FirestoreManager.instance.updateUserWorldProgress(FirebaseManager.instance.User, "AddProgress", addProgress);
+                    }
                     break;
                 case 'S':
                     subProgress = (int)char.GetNumericValue(currentLevel[1]);
+                    //push firestore user level attempt
+                    lvlID = "sub-" + subProgress.ToString();
                     //push firestore user SubProgress field
-                    FirestoreManager.instance.updateUserWorldProgress(FirebaseManager.instance.User, "SubProgress", subProgress);
+                    if (unlockNext)
+                    {
+                        FirestoreManager.instance.updateUserWorldProgress(FirebaseManager.instance.User, "SubProgress", subProgress);
+                    }
                     break;
                 case 'M':
                     mulProgress = (int)char.GetNumericValue(currentLevel[1]);
+                    lvlID = "mul-" + mulProgress.ToString();
                     //push firestore user MulProgress field
-                    FirestoreManager.instance.updateUserWorldProgress(FirebaseManager.instance.User, "MulProgress", mulProgress);
+                    if (unlockNext)
+                    {
+                        FirestoreManager.instance.updateUserWorldProgress(FirebaseManager.instance.User, "MulProgress", mulProgress);
+                    }
                     break;
                 case 'D':
                     divProgress = (int)char.GetNumericValue(currentLevel[1]);
+                    lvlID = "div-" + divProgress.ToString();
                     //push firestore user DivProgress field
-                    FirestoreManager.instance.updateUserWorldProgress(FirebaseManager.instance.User, "DivProgress", divProgress);
+                    if (unlockNext)
+                    {
+                        FirestoreManager.instance.updateUserWorldProgress(FirebaseManager.instance.User, "DivProgress", divProgress);
+                    }
                     break;
             }
+            //push firestore user level attempt
+            FirestoreManager.instance.addUserLevelAttempts(lvlID, FirebaseManager.instance.User.UserId, score.ToString(), res =>
+            {
+                Debug.Log("Pushed user(" + FirebaseManager.instance.User.UserId + ") attempt for " + lvlID + ", score: " + score);
+            });
         }
-
-        //to edit: then also push to firestore the completion records to Score collection
-        //push score, user id, etc..
-
     }
 }

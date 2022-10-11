@@ -301,17 +301,44 @@ public class QuestionManager : MonoBehaviour
         string endText = string.Format("Correct: {0}/{1}\nScore: {2}", correctCount, numQns, score);
 
         //only check unlock for non custom
-        if (opMode != OpMode.CUS 
-            && (correctCount >= numQns / 2f) 
-            && (int)char.GetNumericValue(LevelManager.instance.currentLevel[1]) < 3)
+        bool needUpdateProgress = false;
+        if (opMode != OpMode.CUS)
         {
-            endText += "\nNext Level Unlocked!";
+            int cLvl = (int)char.GetNumericValue(LevelManager.instance.currentLevel[1]);
+            int cProg = 0;
+            switch (LevelManager.instance.currentLevel[0])
+            {
+                case 'A':
+                    cProg = LevelManager.instance.addProgress;
+                    break;
+                case 'S':
+                    cProg = LevelManager.instance.subProgress;
+                    break;
+                case 'M':
+                    cProg = LevelManager.instance.mulProgress;
+                    break;
+                case 'D':
+                    cProg = LevelManager.instance.divProgress;
+                    break;
+            }
+
+            //if half correct and if current progress is < current level
+            if ((correctCount >= numQns / 2f) && cProg < cLvl)
+            {
+                //need to update progress in firestore
+                needUpdateProgress = true;
+                //then only if current level less than max level amount, we show the unlock text in end game screen
+                if (cLvl < 3)
+                {
+                    endText += "\nNext Level Unlocked!";
+                }
+            }
         }
         endMenu.transform.Find("Summary").GetComponent<TextMeshProUGUI>().SetText(endText);
         endMenu.SetActive(true);
 
-        //if at least 50% correct, also unlock next level
-        LevelManager.instance.UpdateUserProgress(score, (correctCount >= numQns / 2f), opMode == OpMode.CUS);
+        //update user progress in firestore
+        LevelManager.instance.UpdateUserProgress(score, needUpdateProgress, opMode == OpMode.CUS);
     }
 
     //Get Game speed
