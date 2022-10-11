@@ -175,12 +175,12 @@ public class FirestoreManager : MonoBehaviour
     }
 
     //get user attempts for an assignment ID/Key
-    public void getAssignmentAttemptsbyID(string assignID, Action<List<Dictionary<string, object>>> result)
+    public Task getAssignmentAttemptsbyID(string assignID, Action<List<Dictionary<string, object>>> result)
     {
         FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
         
         CollectionReference attemptsRef = db.Collection("assignments").Document(assignID).Collection("userattempts");
-        attemptsRef.GetSnapshotAsync().ContinueWith((task) =>
+        return attemptsRef.GetSnapshotAsync().ContinueWith((task) =>
         {
             List<Dictionary<string, object>> userAttempts = new List<Dictionary<string, object>>();
             QuerySnapshot allAttemptsQuerySnapshot = task.Result;
@@ -188,10 +188,10 @@ public class FirestoreManager : MonoBehaviour
             {
                 UserAttempts attempt = attemptSnapshot.ConvertTo<UserAttempts>();
                 Dictionary<string, object> userAttempt = new Dictionary<string, object>
-                        {
-                                { "score", attempt.score },
-                                { "uid" , attemptSnapshot.Id}
-                        };
+                {
+                    { "score", attempt.score },
+                    { "uid" , attemptSnapshot.Id}
+                };
                 userAttempts.Add(userAttempt);
                 // Newline to separate entries
                 Debug.Log("");
@@ -210,7 +210,7 @@ public class FirestoreManager : MonoBehaviour
  
         Dictionary<string, object> userAttempt = new Dictionary<string, object>
         {
-                { "score", userScore }
+            { "score", userScore }
         };
         userAttemptsRef.SetAsync(userAttempt).ContinueWithOnMainThread(task => {
             Debug.Log("Added score of new user document in the assignment collection.");
@@ -219,24 +219,24 @@ public class FirestoreManager : MonoBehaviour
     }
 
     //get a specific user's attempt for an assignment ID/Key
-    public void getSpecificUserAssignmentAttempt(string assignmentId, string userId, Action<UserAttempts> result)
+    public Task getSpecificUserAssignmentAttempt(string assignmentId, string userId, Action<UserAttempts> result)
     {
         FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
         DocumentReference assignRef = db.Collection("assignments").Document(assignmentId);
         DocumentReference userAttemptsRef = assignRef.Collection("userattempts").Document(userId);
         
-        userAttemptsRef.GetSnapshotAsync().ContinueWith((task) =>
+        return userAttemptsRef.GetSnapshotAsync().ContinueWith((task) =>
         {
             var snapshot = task.Result;
             UserAttempts userAttempt = new UserAttempts();
             if (snapshot.Exists)
             {
-                    userAttempt = snapshot.ConvertTo<UserAttempts>();
-                    Debug.Log(String.Format("UID {0} and score {1}:", userId, userAttempt.score)); 
+                userAttempt = snapshot.ConvertTo<UserAttempts>();
+                Debug.Log(String.Format("UID {0} and score {1}:", userId, userAttempt.score)); 
             }
             else
             {
-                    Debug.Log(String.Format("Document {0} does not exist!", snapshot.Id));
+                Debug.Log(String.Format("Document {0} does not exist!", snapshot.Id));
             }
             result?.Invoke(userAttempt);
         });
@@ -256,12 +256,12 @@ public class FirestoreManager : MonoBehaviour
     }
 
     //get user attempts for a levelscore ID/Key
-    public void getLevelAttemptsbyID(string levelId, Action<List<Dictionary<string, object>>> result)
+    public Task getLevelAttemptsbyID(string levelId, Action<List<Dictionary<string, object>>> result)
     {
         FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
         CollectionReference attemptsRef = db.Collection("levelscore").Document(levelId).Collection("userattempts");
 
-        attemptsRef.GetSnapshotAsync().ContinueWith((task) =>
+        return attemptsRef.GetSnapshotAsync().ContinueWith((task) =>
         {
             List<Dictionary<string, object>> userAttempts = new List<Dictionary<string, object>>();
             QuerySnapshot allAttemptsQuerySnapshot = task.Result;
@@ -269,10 +269,10 @@ public class FirestoreManager : MonoBehaviour
             {
                 UserAttempts attempt = attemptSnapshot.ConvertTo<UserAttempts>();
                 Dictionary<string, object> userAttempt = new Dictionary<string, object>
-                        {
-                                { "score", attempt.score },
-                                { "uid" , attemptSnapshot.Id}
-                        };
+                {
+                    { "score", attempt.score },
+                    { "uid" , attemptSnapshot.Id}
+                };
                 userAttempts.Add(userAttempt);
                 // Newline to separate entries
                 Debug.Log("");
@@ -299,22 +299,22 @@ public class FirestoreManager : MonoBehaviour
     }
 
     //get a specific user's attempt for a levelscore ID/Key
-    public void getSpecificUserLevelAttempt(string levelId, string userId, Action<UserAttempts> result)
+    public Task getSpecificUserLevelAttempt(string levelId, string userId, Action<UserAttempts> result)
     {
         FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
         DocumentReference userAttemptsRef = db.Collection("levelscore").Document(levelId).Collection("userattempts").Document(userId);
         
-        userAttemptsRef.GetSnapshotAsync().ContinueWith((task) =>
+        return userAttemptsRef.GetSnapshotAsync().ContinueWith((task) =>
         {
             var snapshot = task.Result;
             UserAttempts userAttempt = new UserAttempts();
             if (snapshot.Exists)
             {
-                    userAttempt = snapshot.ConvertTo<UserAttempts>();
+                userAttempt = snapshot.ConvertTo<UserAttempts>();
             }
             else
             {
-                    Debug.Log(String.Format("Document {0} does not exist!", snapshot.Id));
+                Debug.Log(String.Format("Document {0} does not exist!", snapshot.Id));
             }
             result?.Invoke(userAttempt);
         });

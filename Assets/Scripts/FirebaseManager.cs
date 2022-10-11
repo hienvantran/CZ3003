@@ -19,19 +19,18 @@ public class FirebaseManager : MonoBehaviour
     //Login variables
     [Header("Login")]
     public LoginState loginstate = LoginState.OUT;
-    public GameObject loginGroup;
-    public TMP_InputField emailLoginField;
-    public TMP_InputField passwordLoginField;
-    public TMP_Text statusLoginText;
+    private GameObject loginGroup;
+    private TMP_InputField emailLoginField;
+    private TMP_InputField passwordLoginField;
+    private TMP_Text statusLoginText;
 
     //Register variables
-    [Header("Register")]
-    public GameObject registerGroup;
-    public TMP_InputField nameRegisterField;
-    public TMP_InputField emailRegisterField;
-    public TMP_InputField passwordRegisterField;
-    public TMP_InputField confirmPasswordRegisterField;
-    public TMP_Text statusRegisterText;
+    private GameObject registerGroup;
+    private TMP_InputField nameRegisterField;
+    private TMP_InputField emailRegisterField;
+    private TMP_InputField passwordRegisterField;
+    private TMP_InputField confirmPasswordRegisterField;
+    private TMP_Text statusRegisterText;
 
     public static FirebaseManager instance;
 
@@ -78,7 +77,7 @@ public class FirebaseManager : MonoBehaviour
         //         Debug.LogFormat("User {0} attempt score is: {1}", userId, result["score"]);
         //     });
         
-        firestoreManager.getLevelAttemptsbyID(levelId, result =>
+        FirestoreManager.instance.getLevelAttemptsbyID(levelId, result =>
             {
                 foreach (var attempt in result)
                 {
