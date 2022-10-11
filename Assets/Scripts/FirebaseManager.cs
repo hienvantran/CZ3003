@@ -45,7 +45,7 @@ public class FirebaseManager : MonoBehaviour
 
         DontDestroyOnLoad(this.gameObject);
 
-        GetObjectReferences();
+        StartCoroutine(GetObjectReferences());
 
         //Check that all of the necessary dependencies for Firebase are present on the system
         FirebaseApp.CheckAndFixDependenciesAsync().ContinueWith(task =>
@@ -70,10 +70,12 @@ public class FirebaseManager : MonoBehaviour
         auth = FirebaseAuth.DefaultInstance;
     }
 
-    //get object references (have to do by code if not references will be lost on scene change)
-    private void GetObjectReferences()
+    //get object references
+    private IEnumerator GetObjectReferences()
     {
-        Debug.Log("get obj refs");
+        //wait for 1 frame just to make sure GUI and display is drawn and accessible
+        yield return null;
+
         //Login Group
         loginGroup = GameObject.Find("LoginGroup");
 
@@ -144,22 +146,19 @@ public class FirebaseManager : MonoBehaviour
         User = null;
         this.ClearFields();
         loginstate = LoginState.OUT;
+        Destroy(this.gameObject);
         SceneManager.LoadScene("Login");
     }
 
     private IEnumerator Login(string _email, string _password)
     {
-        Debug.Log("Login run");
         //Firebase auth signin with email & pass
         var LoginTask = auth.SignInWithEmailAndPasswordAsync(_email, _password);
         //wait
         yield return new WaitUntil(predicate: () => LoginTask.IsCompleted);
 
-        Debug.Log("auth done");
-
         if (LoginTask.Exception != null)
         {
-            Debug.Log("exception");
             //handle errors
             Debug.LogWarning(message: $"Failed to register task with {LoginTask.Exception}");
             FirebaseException firebaseEx = LoginTask.Exception.GetBaseException() as FirebaseException;
@@ -188,7 +187,6 @@ public class FirebaseManager : MonoBehaviour
         }
         else
         {
-            Debug.Log("pass login");
             //logged in
             User = LoginTask.Result;
             Debug.LogFormat("User signed in successfully: {0} ({1})", User.DisplayName, User.Email);
