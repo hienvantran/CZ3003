@@ -41,3 +41,35 @@
 //     UserAttempts userAttempt = specificUserTask.Result;
 //     Debug.LogFormat("User {0} with score {1}", userAttempt.UID, userAttempt.score);
 // }
+
+
+
+
+
+
+// test level
+            // string levelId = "test1-1";
+            // string userId = User.UserId;
+            // string userScore = "16";
+            // firestoreManager.addLevel(levelId);
+            // firestoreManager.addUserLevelAttempts(levelId, userId, userScore, result =>
+            //     {
+            //         Debug.LogFormat("User {0} attempt score is: {1}", userId, result["score"]);
+            //     });
+            
+            // firestoreManager.getLevelAttemptsbyID(levelId, result =>
+            //     {
+            //         foreach (var attempt in result)
+            //         {
+            //             Debug.Log("Test get all attempts");
+            //             Debug.LogFormat("Score of {0} is: {1}", attempt["uid"], attempt["score"]);
+            //             // Newline to separate entries
+            //             Debug.Log("");
+            //         }
+            //     });
+            
+            // firestoreManager.getSpecificUserLevelAttempt(levelId, userId, result =>
+            //     {
+            //         Debug.Log("Test get specific attempt");
+            //         Debug.LogFormat("User {0} score is: {1}", userId, result.score);
+            //     });
