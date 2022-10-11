@@ -43,14 +43,28 @@ public class MenuButton : MonoBehaviour
     }
 
     //Load custom
-    public void LoadCustomLevel()
+    public void LoadLevelCustom()
+    {
+        StartCoroutine(LoadCustomLevel());
+    }
+    public IEnumerator LoadCustomLevel()
     {
         //decode seed for options
         Debug.Log("it's custom time");
         string seed = seedInput.text;
-        (int, string) seedParams = SeedEncoder.DecodeSeed(seed);
 
-        LevelManager.instance.SetParams(seedParams.Item1, 1, QuestionManager.OpMode.CUS, seedParams.Item2);
+        //get qstring by seed(assignment key)
+        var qnStrParamsTask = LevelManager.instance.firestoreManager.getAssignmentQnsStrbyID(seed, res =>
+        {
+            Debug.Log("qnStr is : " + res);
+            (int, string) seedParams = SeedEncoder.DecodeSeed(res);
+            LevelManager.instance.SetParams(seedParams.Item1, 1, QuestionManager.OpMode.CUS, seedParams.Item2);
+        });
+
+        //wait
+        yield return new WaitUntil(predicate: () => qnStrParamsTask.IsCompleted);
+
+        //set prev scene and launch runner game scene
         LevelManager.instance.previousScene = SceneManager.GetActiveScene().name;
         SceneManager.LoadScene("RunnerGame");
     }

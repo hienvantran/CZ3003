@@ -49,6 +49,20 @@ public class UserAttempts
 
 public class FirestoreManager : MonoBehaviour
 {
+    //public static FirestoreManager instance;
+
+    //instance
+    private void Awake()
+    {
+        //if (!FirestoreManager.instance)
+        //    FirestoreManager.instance = this;
+
+        //if (FirestoreManager.instance != this)
+        //    Destroy(this.gameObject);
+
+        DontDestroyOnLoad(this.gameObject);
+    }
+
     //add user details to firestore
     //* add functions don't actually need the calllback action but good to have incase you want to notify when done or smth
     public void addUser (FirebaseUser User, Action<Dictionary<string, object>> result) {
@@ -84,12 +98,12 @@ public class FirestoreManager : MonoBehaviour
     }
 
     //get assignment question string by assignment ID/Key
-    public void getAssignmentQnsStrbyID(string assignID, Action<string> result)
+    public Task getAssignmentQnsStrbyID(string assignID, Action<string> result)
     {
         FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
         DocumentReference assignRef = db.Collection("assignments").Document(assignID);
         
-        assignRef.GetSnapshotAsync().ContinueWith((task) =>
+        return assignRef.GetSnapshotAsync().ContinueWith((task) =>
         {
             var snapshot = task.Result;
             string assignmentQnsStr = "";
