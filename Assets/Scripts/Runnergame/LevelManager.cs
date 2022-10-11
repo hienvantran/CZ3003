@@ -76,70 +76,92 @@ public class LevelManager : MonoBehaviour
     //Updates the user's progress of the normal levels
     public void UpdateUserProgress(int score, bool unlockNext, bool isCus)
     {
+        StartCoroutine(doUpdateUserProgress(score, unlockNext, isCus));
+    }
+    public IEnumerator doUpdateUserProgress(int score, bool unlockNext, bool isCus)
+    {
         //check firebase auth confirm user login
         if (FirebaseManager.instance.User == null)
         {
             Debug.LogWarning("No user account detected, skipping firestore update");
-            return;
+            yield break;
         }
+        
+        int prevScore = 0;
 
         //then also push to firestore the completion records to LevelScore / Assignment collection
         if (isCus)
         {
-            //add user attempt for assignment
-            FirestoreManager.instance.addUserAssignmentAttempts(currentSeed, FirebaseManager.instance.User.UserId, score.ToString(), res =>
+            //check for existing attempt and update higher score
+            var checkExistTask = FirestoreManager.instance.getSpecificUserAssignmentAttempt(currentSeed, FirebaseManager.instance.User.UserId, res =>
             {
-                Debug.Log("Pushed user(" + FirebaseManager.instance.User.UserId + ") attempt for " + currentSeed + ", score: " + score);
+                prevScore = int.Parse(res.score);
+            });
+
+            yield return new WaitUntil(predicate: () => checkExistTask.IsCompleted);
+
+            //add user attempt for assignment
+            FirestoreManager.instance.addUserAssignmentAttempts(currentSeed, FirebaseManager.instance.User.UserId, Mathf.Max(prevScore, score).ToString(), res =>
+            {
+                Debug.Log("Pushed user(" + FirebaseManager.instance.User.UserId + ") attempt for " + currentSeed + ", score: " + Mathf.Max(prevScore, score));
             });
         }
         else
         {
-            string lvlID = "";
             //add user attempt for level and also update progression field if needed
+            string lvlID = "";
             switch (currentLevel[0])
             {
                 case 'A':
-                    addProgress = (int)char.GetNumericValue(currentLevel[1]);
-                    lvlID = "add-" + addProgress.ToString();
+                    lvlID = "add-" + char.GetNumericValue(currentLevel[1]);
                     //push firestore user AddProgress field
                     if (unlockNext)
                     {
+                        addProgress++;
                         FirestoreManager.instance.updateUserWorldProgress(FirebaseManager.instance.User, "AddProgress", addProgress);
                     }
                     break;
                 case 'S':
-                    subProgress = (int)char.GetNumericValue(currentLevel[1]);
-                    //push firestore user level attempt
-                    lvlID = "sub-" + subProgress.ToString();
+                    lvlID = "sub-" + char.GetNumericValue(currentLevel[1]);
                     //push firestore user SubProgress field
                     if (unlockNext)
                     {
+                        subProgress++;
                         FirestoreManager.instance.updateUserWorldProgress(FirebaseManager.instance.User, "SubProgress", subProgress);
                     }
                     break;
                 case 'M':
-                    mulProgress = (int)char.GetNumericValue(currentLevel[1]);
-                    lvlID = "mul-" + mulProgress.ToString();
+                    lvlID = "mul-" + char.GetNumericValue(currentLevel[1]);
                     //push firestore user MulProgress field
                     if (unlockNext)
                     {
+                        mulProgress++;
                         FirestoreManager.instance.updateUserWorldProgress(FirebaseManager.instance.User, "MulProgress", mulProgress);
                     }
                     break;
                 case 'D':
-                    divProgress = (int)char.GetNumericValue(currentLevel[1]);
-                    lvlID = "div-" + divProgress.ToString();
+                    lvlID = "div-" + char.GetNumericValue(currentLevel[1]);
                     //push firestore user DivProgress field
                     if (unlockNext)
                     {
+                        divProgress++;
                         FirestoreManager.instance.updateUserWorldProgress(FirebaseManager.instance.User, "DivProgress", divProgress);
                     }
                     break;
             }
-            //push firestore user level attempt
-            FirestoreManager.instance.addUserLevelAttempts(lvlID, FirebaseManager.instance.User.UserId, score.ToString(), res =>
+
+            //check for existing attempt and update higher score
+            var checkExistTask = FirestoreManager.instance.getSpecificUserLevelAttempt(lvlID, FirebaseManager.instance.User.UserId, res =>
             {
-                Debug.Log("Pushed user(" + FirebaseManager.instance.User.UserId + ") attempt for " + lvlID + ", score: " + score);
+                prevScore = int.Parse(res.score);
+            });
+
+            yield return new WaitUntil(predicate: () => checkExistTask.IsCompleted);
+
+            //push firestore user level attempt
+            FirestoreManager.instance.addUserLevelAttempts(lvlID, FirebaseManager.instance.User.UserId, Mathf.Max(prevScore, score).ToString(), res =>
+            {
+                Debug.Log("Pushed user(" + FirebaseManager.instance.User.UserId + ") attempt for " + lvlID + ", score: " + Mathf.Max(prevScore, score));
             });
         }
     }

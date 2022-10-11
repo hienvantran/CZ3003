@@ -4462,16 +4462,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   dependencyStatus: 0
   loginstate: 1
-  loginGroup: {fileID: 0}
-  emailLoginField: {fileID: 0}
-  passwordLoginField: {fileID: 0}
-  statusLoginText: {fileID: 0}
-  registerGroup: {fileID: 0}
-  nameRegisterField: {fileID: 0}
-  emailRegisterField: {fileID: 0}
-  passwordRegisterField: {fileID: 0}
-  confirmPasswordRegisterField: {fileID: 0}
-  statusRegisterText: {fileID: 0}
 --- !u!1 &2072125643
 GameObject:
   m_ObjectHideFlags: 0

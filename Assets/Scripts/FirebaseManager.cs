@@ -63,37 +63,6 @@ public class FirebaseManager : MonoBehaviour
         });
     }
 
-    public void test()
-    {
-        Debug.Log("button press");
-        string levelId = "test1-1";
-        // string userId = User.UserId;
-        // string userScore = "16";
-
-        //setting level
-        // firestoreManager.addLevel(levelId);
-        // firestoreManager.addUserLevelAttempts(levelId, userId, userScore, result =>
-        //     {
-        //         Debug.LogFormat("User {0} attempt score is: {1}", userId, result["score"]);
-        //     });
-        
-        FirestoreManager.instance.getLevelAttemptsbyID(levelId, result =>
-            {
-                foreach (var attempt in result)
-                {
-                    Debug.Log("Test get all attempts");
-                    Debug.LogFormat("Score of {0} is: {1}", attempt["uid"], attempt["score"]);
-                    // Newline to separate entries
-                    Debug.Log("");
-                }
-            });
-        
-        // firestoreManager.getSpecificUserLevelAttempt(levelId, userId, result =>
-        //     {
-        //         Debug.Log("Test get specific attempt");
-        //         Debug.LogFormat("User {0} score is: {1}", userId, result.score);
-        //     });
-    }
     private void InitializeFirebase()
     {
         Debug.Log("Setting up Firebase Auth");
