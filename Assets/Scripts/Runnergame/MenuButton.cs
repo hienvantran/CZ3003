@@ -54,7 +54,7 @@ public class MenuButton : MonoBehaviour
         string seed = seedInput.text;
 
         //get qstring by seed(assignment key)
-        var qnStrParamsTask = LevelManager.instance.firestoreManager.getAssignmentQnsStrbyID(seed, res =>
+        var qnStrParamsTask = FirestoreManager.instance.getAssignmentQnsStrbyID(seed, res =>
         {
             Debug.Log("qnStr is : " + res);
             (int, string) seedParams = SeedEncoder.DecodeSeed(res);

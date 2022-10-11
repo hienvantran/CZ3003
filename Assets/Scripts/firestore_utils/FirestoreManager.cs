@@ -23,6 +23,18 @@ public class User
 
         [FirestoreProperty]
         public string UID { get; set; }
+
+        [FirestoreProperty]
+        public int AddProgress { get; set; }
+
+        [FirestoreProperty]
+        public int SubProgress { get; set; }
+
+        [FirestoreProperty]
+        public int MulProgress { get; set; }
+
+        [FirestoreProperty]
+        public int DivProgress { get; set; }
 }
 
 [FirestoreData]
@@ -49,16 +61,16 @@ public class UserAttempts
 
 public class FirestoreManager : MonoBehaviour
 {
-    //public static FirestoreManager instance;
+    public static FirestoreManager instance;
 
     //instance
     private void Awake()
     {
-        //if (!FirestoreManager.instance)
-        //    FirestoreManager.instance = this;
+        if (!FirestoreManager.instance)
+            FirestoreManager.instance = this;
 
-        //if (FirestoreManager.instance != this)
-        //    Destroy(this.gameObject);
+        if (FirestoreManager.instance != this)
+            Destroy(this.gameObject);
 
         DontDestroyOnLoad(this.gameObject);
     }
@@ -73,11 +85,55 @@ public class FirestoreManager : MonoBehaviour
                 { "Name", User.DisplayName },
                 { "Email", User.Email },
                 { "Role", "Student" },
-                { "UID", User.UserId }
+                { "UID", User.UserId },
+                { "AddProgress", 0 },
+                { "SubProgress", 0 },
+                { "MulProgress", 0 },
+                { "DivProgress", 0 }
+
         };
         users.SetAsync(user).ContinueWithOnMainThread(task => {
             Debug.Log("Added data of new user document in the users collection.");
             result?.Invoke(user);
+        });
+    }
+
+    //update user world progress
+    public void updateUserWorldProgress(FirebaseUser User, string field, int val)
+    {
+        FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
+        DocumentReference docRef = db.Collection("users").Document(User.UserId);
+
+        docRef.UpdateAsync(field, val).ContinueWithOnMainThread(task => 
+        {
+            Debug.Log("Updated " + field + " to " + val);
+        });
+    }
+
+    //get user world progress
+    public Task getUserWorldProgress(FirebaseUser User, Action<Dictionary<string, int>> result)
+    {
+        FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
+        DocumentReference docRef = db.Collection("users").Document(User.UserId);
+
+        return docRef.GetSnapshotAsync().ContinueWith((task) =>
+        {
+            var snapshot = task.Result;
+            Dictionary<string, int> userProg = new Dictionary<string, int>();
+            if (snapshot.Exists)
+            {
+                User refUser = snapshot.ConvertTo<User>();
+                userProg.Add("Add", refUser.AddProgress);
+                userProg.Add("Sub", refUser.SubProgress);
+                userProg.Add("Mul", refUser.MulProgress);
+                userProg.Add("Div", refUser.DivProgress);
+                result?.Invoke(userProg);
+            }
+            else
+            {
+                Debug.Log(String.Format("Document {0} does not exist!", snapshot.Id));
+            }
+            return;
         });
     }
 

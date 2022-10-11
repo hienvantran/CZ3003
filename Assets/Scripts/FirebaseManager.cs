@@ -9,7 +9,6 @@ using TMPro;
 public class FirebaseManager : MonoBehaviour
 {
     public enum LoginState { IN, OUT }
-    [SerializeField] private FirestoreManager firestoreManager;
     //Firebase variables
     [Header("Firebase")]
     public DependencyStatus dependencyStatus;
@@ -34,8 +33,18 @@ public class FirebaseManager : MonoBehaviour
     public TMP_InputField confirmPasswordRegisterField;
     public TMP_Text statusRegisterText;
 
+    public static FirebaseManager instance;
+
     void Awake()
     {
+        if (!FirebaseManager.instance)
+            FirebaseManager.instance = this;
+
+        if (FirebaseManager.instance != this)
+            Destroy(this.gameObject);
+
+        DontDestroyOnLoad(this.gameObject);
+
         //Check that all of the necessary dependencies for Firebase are present on the system
         FirebaseApp.CheckAndFixDependenciesAsync().ContinueWith(task =>
         {
@@ -236,7 +245,7 @@ public class FirebaseManager : MonoBehaviour
                     else
                     {
                         //add firestore user data
-                        firestoreManager.addUser(User, res =>
+                        FirestoreManager.instance.addUser(User, res =>
                         {
                             //successful registration, go back to login screen
                             Debug.LogFormat("User Registered: {0} ({1})", res["Name"], res["UID"]);
