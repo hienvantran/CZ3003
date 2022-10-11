@@ -22,6 +22,11 @@ public class MainMenu : MonoBehaviour
         SceneManager.LoadScene(name);
     }
 
+    public void Logout()
+    {
+        FirebaseManager.instance.Logout();
+    }
+
     public void QuitGame()
     {
         Application.Quit();
