@@ -12,6 +12,9 @@ EditorBuildSettings:
     path: Assets/Scenes/MainMenu.unity
     guid: 6c1db08f3597ee14fb51305e3afc930d
   - enabled: 1
+    path: Assets/Scenes/Login.unity
+    guid: 2a184f1f61820584f8ae75ade5cff8d8
+  - enabled: 1
     path: Assets/Scenes/ModeSelect.unity
     guid: 4973a5e3d528ff8448dcd560634caa4c
   - enabled: 1
@@ -20,6 +23,15 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/AddMode.unity
     guid: f9cf0d31857d22c49bdb1399657dcdbd
+  - enabled: 1
+    path: Assets/Scenes/SubMode.unity
+    guid: dc8eb5cc34e59224a9017e492299d403
+  - enabled: 1
+    path: Assets/Scenes/MulMode.unity
+    guid: 628002f44aa93194791605fa4ef455ae
+  - enabled: 1
+    path: Assets/Scenes/DivMode.unity
+    guid: 5926ac9de62948544b5a3667750f4d59
   - enabled: 1
     path: Assets/Scenes/CustomLevelSetup.unity
     guid: 9aa4dcb6cfa7a0346a8951ca290cea81

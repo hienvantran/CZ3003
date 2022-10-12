@@ -1464,12 +1464,12 @@ GameObject:
   m_Component:
   - component: {fileID: 370108714}
   m_Layer: 5
-  m_Name: Register
+  m_Name: RegisterGroup
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &370108714
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1854,7 +1854,7 @@ GameObject:
   - component: {fileID: 420997157}
   - component: {fileID: 420997159}
   m_Layer: 5
-  m_Name: Username
+  m_Name: Name
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2366,7 +2366,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Username
+  m_text: Name
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -2713,7 +2713,6 @@ RectTransform:
   m_Children:
   - {fileID: 1674346467}
   - {fileID: 370108714}
-  - {fileID: 1971725716}
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -3526,7 +3525,7 @@ GameObject:
   - component: {fileID: 1462723452}
   - component: {fileID: 1462723451}
   m_Layer: 5
-  m_Name: LoginoutBtn
+  m_Name: LoginBtn
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3599,7 +3598,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1916008534}
         m_TargetAssemblyTypeName: FirebaseManager, Assembly-CSharp
-        m_MethodName: LoginoutButton
+        m_MethodName: LoginButton
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -4062,7 +4061,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1674346467}
   m_Layer: 5
-  m_Name: Login
+  m_Name: LoginGroup
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4461,69 +4460,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cea0151c7973c9246aa7fd76e4f82b9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  firestoreManager: {fileID: 1971725717}
   dependencyStatus: 0
   loginstate: 1
-  loginGroup: {fileID: 1674346466}
-  emailLoginField: {fileID: 2072125647}
-  passwordLoginField: {fileID: 1169642366}
-  loginoutButtonText: {fileID: 1767041691}
-  statusLoginText: {fileID: 1467797031}
-  registerGroup: {fileID: 370108713}
-  usernameRegisterField: {fileID: 420997159}
-  emailRegisterField: {fileID: 13770685}
-  passwordRegisterField: {fileID: 258690104}
-  confirmPasswordRegisterField: {fileID: 978615297}
-  statusRegisterText: {fileID: 2106688652}
---- !u!1 &1971725715
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1971725716}
-  - component: {fileID: 1971725717}
-  m_Layer: 5
-  m_Name: FirestoreManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &1971725716
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1971725715}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 987864045}
-  m_RootOrder: 2
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1971725717
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1971725715}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aeaab17deca7fa344bdb4a518e95f576, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &2072125643
 GameObject:
   m_ObjectHideFlags: 0
@@ -4767,6 +4705,50 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2087904202
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2087904204}
+  - component: {fileID: 2087904203}
+  m_Layer: 0
+  m_Name: FirestoreManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2087904203
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2087904202}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aeaab17deca7fa344bdb4a518e95f576, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &2087904204
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2087904202}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2106688651
 GameObject:

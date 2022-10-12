@@ -181,7 +181,7 @@ MonoBehaviour:
   numQns: 10
   difficulty: 2.5
   opMode: 2
-  levelString: A3
+  levelString: M3
   seedInput: {fileID: 0}
 --- !u!114 &9446045
 MonoBehaviour:
@@ -424,7 +424,7 @@ MonoBehaviour:
   numQns: 10
   difficulty: 1.5
   opMode: 2
-  levelString: A2
+  levelString: M2
   seedInput: {fileID: 0}
 --- !u!114 &547164776
 MonoBehaviour:
@@ -1039,7 +1039,7 @@ MonoBehaviour:
   numQns: 10
   difficulty: 1
   opMode: 2
-  levelString: A1
+  levelString: M1
   seedInput: {fileID: 0}
 --- !u!1 &1262799997
 GameObject:

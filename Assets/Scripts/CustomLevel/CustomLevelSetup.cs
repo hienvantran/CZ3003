@@ -102,12 +102,23 @@ public class CustomLevelSetup : MonoBehaviour
             string levelSeed = SeedEncoder.CreateSeed(questionCount, qList);
             Debug.Log("seed: " + levelSeed);
 
-            //create level id
+            //create level id (assignment key)
             string levelId = SeedEncoder.CreateLevelID();
             Debug.Log("level id: " + levelId);
 
-            createdPanel.SetActive(true);
-            seedBox.GetComponent<TMP_InputField>().text = levelSeed;
+            //push to database
+            FirestoreManager.instance.addAssignment(levelId, levelSeed, res =>
+            {
+                if (res["qnsString"] != null)
+                {
+                    createdPanel.SetActive(true);
+                    seedBox.GetComponent<TMP_InputField>().text = levelId;
+                }
+                else
+                {
+                    Debug.LogError(string.Format("Error adding assignment to database with key[{0}] and qString [{1}]", levelId, levelSeed));
+                }
+            });
         }
     }
 

@@ -12,8 +12,10 @@ public class SelectionManager : MonoBehaviour
     [SerializeField] private TMP_Dropdown zoneDropdown;
     [SerializeField] private TMP_Dropdown levelDropdown;
 
+    [SerializeField] private LeaderboardDatabaseManager leaderboardDatabaseManager;
+
     // keep tracks of the list of zones each world contains
-    private Dictionary<string, List<string>> zonesInWorld;
+    private Dictionary<string, List<string>> zonesInWorlds;
 
     // keep tracks of the list of levels each zone contains
     private Dictionary<ValueTuple<string, string>, List<string>> levelsInZones;
@@ -21,59 +23,60 @@ public class SelectionManager : MonoBehaviour
     public delegate void OnSelectionChangedDelegate();
     public event OnSelectionChangedDelegate SelectionChanged;
 
-    void Awake()
+    void Start()
     {
         GetWorldZoneLevelData();
-        UpdateWorldOptions();
-        SetAutoUpdateOnValueChanged();
     }
 
     // Get the list of worlds, zones and levels
     void GetWorldZoneLevelData()
     {
-        zonesInWorld = new Dictionary<string, List<string>>();
-        // some dummy data for now
-        zonesInWorld.Add("Addition", new List<string>() {
-            "Beginner", "Intermediate"
-            });
-
-        zonesInWorld.Add("Subtraction", new List<string>() {
-            "Beginner", "Advanced"
-            });
-
+        leaderboardDatabaseManager.getWorldsZonesLevels(
+            res =>
+            {
+                GetWorldZoneLevelData(res);
+                UpdateWorldOptions();
+                UpdateZoneOptions();
+                UpdateLevelOptions();
+                SetAutoUpdateOnValueChanged();
+            }
+        );
+    }
+    void GetWorldZoneLevelData(Dictionary<string, Dictionary<string, List<string>>> worldsZonesLevels)
+    {
+        zonesInWorlds = new Dictionary<string, List<string>>();
         levelsInZones = new Dictionary<(string, string), List<string>>();
-        levelsInZones.Add(("Addition", "Beginner"), new List<string>() {
-            "Add Begin Lvl 1", "Add Begin Lvl 2", "Add Begin Lvl 3"
-            });
-
-        levelsInZones.Add(("Addition", "Intermediate"), new List<string>() {
-            "Add Inter Lvl 1", "Add Inter Lvl 2"
-            });
-
-        levelsInZones.Add(("Subtraction", "Beginner"), new List<string>() {
-            "Sub Begin Lvl 1", "Sub Begin Lvl 2", "Sub Begin Lvl 3"
-            });
-
-        levelsInZones.Add(("Subtraction", "Advanced"), new List<string>() {
-            "Sub Adv Lvl 1",
-            });
+        foreach (KeyValuePair<string, Dictionary<string, List<string>>> world in worldsZonesLevels)
+        {
+            Debug.Log("world is: " + world.Key);
+            List<string> zones = new List<string>();
+            foreach (KeyValuePair<string, List<string>> zone in world.Value)
+            {
+                zones.Add(zone.Key);
+                levelsInZones.Add((world.Key, zone.Key), zone.Value);
+            }
+            zonesInWorlds.Add(world.Key, zones);
+        }
+        Debug.Log("Done getting world zone level");
     }
     void UpdateWorldOptions()
     {
         ClearOptionsAndSetDefault(worldDropdown);
-        worldDropdown.AddOptions(zonesInWorld.Keys.ToList());
-        UpdateZoneOptions();
+        Debug.Log("Updating world dropdown");
+        worldDropdown.AddOptions(zonesInWorlds.Keys.ToList());
+        // UpdateZoneOptions();
     }
 
     void UpdateZoneOptions()
     {
         ClearOptionsAndSetDefault(zoneDropdown);
         string worldSelected = GetWorldSelected();
+        Debug.Log("Updating zone dropdown");
         if (worldSelected != defaultOptionAll)
         {
-            zoneDropdown.AddOptions(zonesInWorld[worldSelected]);
+            zoneDropdown.AddOptions(zonesInWorlds[worldSelected]);
         }
-        UpdateLevelOptions();
+        // UpdateLevelOptions();
     }
 
     void UpdateLevelOptions()
@@ -81,6 +84,7 @@ public class SelectionManager : MonoBehaviour
         ClearOptionsAndSetDefault(levelDropdown);
         string worldSelected = GetWorldSelected();
         string zoneSelected = GetZoneSelected();
+        Debug.Log("Updating level dropdown");
         if (worldSelected != defaultOptionAll && zoneSelected != defaultOptionAll)
         {
             levelDropdown.AddOptions(levelsInZones[(worldSelected, zoneSelected)]);
@@ -99,7 +103,7 @@ public class SelectionManager : MonoBehaviour
         zoneDropdown.onValueChanged.AddListener(delegate
             { UpdateLevelOptions(); OnSelectionChanged(); });
         levelDropdown.onValueChanged.AddListener(delegate
-            { OnSelectionChanged(); OnSelectionChanged(); });
+            { OnSelectionChanged(); });
     }
 
     private void ClearOptionsAndSetDefault(TMP_Dropdown dropdown)

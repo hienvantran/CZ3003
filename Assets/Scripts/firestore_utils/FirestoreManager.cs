@@ -23,6 +23,18 @@ public class User
 
         [FirestoreProperty]
         public string UID { get; set; }
+
+        [FirestoreProperty]
+        public int AddProgress { get; set; }
+
+        [FirestoreProperty]
+        public int SubProgress { get; set; }
+
+        [FirestoreProperty]
+        public int MulProgress { get; set; }
+
+        [FirestoreProperty]
+        public int DivProgress { get; set; }
 }
 
 [FirestoreData]
@@ -41,14 +53,25 @@ public class Assignment
 public class UserAttempts 
 {
         [FirestoreProperty]
-        public string UID { get; set;}
-
-        [FirestoreProperty]
         public string score { get; set;}
 }
 
 public class FirestoreManager : MonoBehaviour
 {
+    public static FirestoreManager instance;
+
+    //instance
+    private void Awake()
+    {
+        if (!FirestoreManager.instance)
+            FirestoreManager.instance = this;
+
+        if (FirestoreManager.instance != this)
+            Destroy(this.gameObject);
+
+        DontDestroyOnLoad(this.gameObject);
+    }
+
     //add user details to firestore
     //* add functions don't actually need the calllback action but good to have incase you want to notify when done or smth
     public void addUser (FirebaseUser User, Action<Dictionary<string, object>> result) {
@@ -59,11 +82,55 @@ public class FirestoreManager : MonoBehaviour
                 { "Name", User.DisplayName },
                 { "Email", User.Email },
                 { "Role", "Student" },
-                { "UID", User.UserId }
+                { "UID", User.UserId },
+                { "AddProgress", 0 },
+                { "SubProgress", 0 },
+                { "MulProgress", 0 },
+                { "DivProgress", 0 }
+
         };
         users.SetAsync(user).ContinueWithOnMainThread(task => {
             Debug.Log("Added data of new user document in the users collection.");
             result?.Invoke(user);
+        });
+    }
+
+    //update user world progress
+    public void updateUserWorldProgress(FirebaseUser User, string field, int val)
+    {
+        FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
+        DocumentReference docRef = db.Collection("users").Document(User.UserId);
+
+        docRef.UpdateAsync(field, val).ContinueWithOnMainThread(task => 
+        {
+            Debug.Log("Updated " + field + " to " + val);
+        });
+    }
+
+    //get user world progress
+    public Task getUserWorldProgress(FirebaseUser User, Action<Dictionary<string, int>> result)
+    {
+        FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
+        DocumentReference docRef = db.Collection("users").Document(User.UserId);
+
+        return docRef.GetSnapshotAsync().ContinueWith((task) =>
+        {
+            var snapshot = task.Result;
+            Dictionary<string, int> userProg = new Dictionary<string, int>();
+            if (snapshot.Exists)
+            {
+                User refUser = snapshot.ConvertTo<User>();
+                userProg.Add("Add", refUser.AddProgress);
+                userProg.Add("Sub", refUser.SubProgress);
+                userProg.Add("Mul", refUser.MulProgress);
+                userProg.Add("Div", refUser.DivProgress);
+                result?.Invoke(userProg);
+            }
+            else
+            {
+                Debug.Log(String.Format("Document {0} does not exist!", snapshot.Id));
+            }
+            return;
         });
     }
 
@@ -84,12 +151,12 @@ public class FirestoreManager : MonoBehaviour
     }
 
     //get assignment question string by assignment ID/Key
-    public void getAssignmentQnsStrbyID(string assignID, Action<string> result)
+    public Task getAssignmentQnsStrbyID(string assignID, Action<string> result)
     {
         FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
         DocumentReference assignRef = db.Collection("assignments").Document(assignID);
         
-        assignRef.GetSnapshotAsync().ContinueWith((task) =>
+        return assignRef.GetSnapshotAsync().ContinueWith((task) =>
         {
             var snapshot = task.Result;
             string assignmentQnsStr = "";
@@ -108,19 +175,24 @@ public class FirestoreManager : MonoBehaviour
     }
 
     //get user attempts for an assignment ID/Key
-    public void getAssignmentAttemptsbyID(string assignID, Action<List<UserAttempts>> result)
+    public Task getAssignmentAttemptsbyID(string assignID, Action<List<Dictionary<string, object>>> result)
     {
         FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
         
-        CollectionReference attemptsRef = db.Collection("assignments").Document(assignID).Collection("userAttempts");
-        attemptsRef.GetSnapshotAsync().ContinueWith((task) =>
+        CollectionReference attemptsRef = db.Collection("assignments").Document(assignID).Collection("userattempts");
+        return attemptsRef.GetSnapshotAsync().ContinueWith((task) =>
         {
-            List<UserAttempts> userAttempts = new List<UserAttempts>();
+            List<Dictionary<string, object>> userAttempts = new List<Dictionary<string, object>>();
             QuerySnapshot allAttemptsQuerySnapshot = task.Result;
             foreach (DocumentSnapshot attemptSnapshot in allAttemptsQuerySnapshot.Documents)
             {
                 UserAttempts attempt = attemptSnapshot.ConvertTo<UserAttempts>();
-                userAttempts.Add(attempt);
+                Dictionary<string, object> userAttempt = new Dictionary<string, object>
+                {
+                    { "score", attempt.score },
+                    { "uid" , attemptSnapshot.Id}
+                };
+                userAttempts.Add(userAttempt);
                 // Newline to separate entries
                 Debug.Log("");
             }
@@ -131,15 +203,14 @@ public class FirestoreManager : MonoBehaviour
 
     //add a user attempt for an assignment ID/Key
     //* add functions don't actually need the calllback action but good to have incase you want to notify when done or smth
-    public void addUserAttempts (string assignmentId, string userId, string userScore, Action<Dictionary<string, object>> result) {
+    public void addUserAssignmentAttempts (string assignmentId, string userId, string userScore, Action<Dictionary<string, object>> result) {
         FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
         DocumentReference assignRef = db.Collection("assignments").Document(assignmentId);
-        DocumentReference userAttemptsRef = assignRef.Collection("userAttempts").Document(userId);
+        DocumentReference userAttemptsRef = assignRef.Collection("userattempts").Document(userId);
  
         Dictionary<string, object> userAttempt = new Dictionary<string, object>
         {
-                { "score", userScore },
-                { "UID", userId }
+            { "score", userScore }
         };
         userAttemptsRef.SetAsync(userAttempt).ContinueWithOnMainThread(task => {
             Debug.Log("Added score of new user document in the assignment collection.");
@@ -148,24 +219,102 @@ public class FirestoreManager : MonoBehaviour
     }
 
     //get a specific user's attempt for an assignment ID/Key
-    public void getSpecificUserAttempt(string assignmentId, string userId, Action<UserAttempts> result)
+    public Task getSpecificUserAssignmentAttempt(string assignmentId, string userId, Action<UserAttempts> result)
     {
         FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
         DocumentReference assignRef = db.Collection("assignments").Document(assignmentId);
-        DocumentReference userAttemptsRef = assignRef.Collection("userAttempts").Document(userId);
+        DocumentReference userAttemptsRef = assignRef.Collection("userattempts").Document(userId);
         
-        userAttemptsRef.GetSnapshotAsync().ContinueWith((task) =>
+        return userAttemptsRef.GetSnapshotAsync().ContinueWith((task) =>
         {
             var snapshot = task.Result;
             UserAttempts userAttempt = new UserAttempts();
             if (snapshot.Exists)
             {
-                    userAttempt = snapshot.ConvertTo<UserAttempts>();
-                    Debug.Log(String.Format("UID {0} and score {1}:", userAttempt.UID, userAttempt.score)); 
+                userAttempt = snapshot.ConvertTo<UserAttempts>();
+                Debug.Log(String.Format("UID {0} and score {1}:", userId, userAttempt.score)); 
             }
             else
             {
-                    Debug.Log(String.Format("Document {0} does not exist!", snapshot.Id));
+                Debug.Log(String.Format("Document {0} does not exist!", snapshot.Id));
+            }
+            result?.Invoke(userAttempt);
+        });
+    }
+
+
+    // levelscore collections
+    // add levelscore to firestore
+    //* add functions don't actually need the calllback action but good to have incase you want to notify when done or smth
+    public void addLevel (string levelId) {
+        FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
+        DocumentReference levelRef = db.Collection("levelscore").Document(levelId);
+        var empty_object = new Dictionary < string, object > ();
+        levelRef.SetAsync(empty_object).ContinueWithOnMainThread(task => {
+            Debug.Log("Added new level in the defaultlevelscore collection.");
+        });
+    }
+
+    //get user attempts for a levelscore ID/Key
+    public Task getLevelAttemptsbyID(string levelId, Action<List<Dictionary<string, object>>> result)
+    {
+        FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
+        CollectionReference attemptsRef = db.Collection("levelscore").Document(levelId).Collection("userattempts");
+
+        return attemptsRef.GetSnapshotAsync().ContinueWith((task) =>
+        {
+            List<Dictionary<string, object>> userAttempts = new List<Dictionary<string, object>>();
+            QuerySnapshot allAttemptsQuerySnapshot = task.Result;
+            foreach (DocumentSnapshot attemptSnapshot in allAttemptsQuerySnapshot.Documents)
+            {
+                UserAttempts attempt = attemptSnapshot.ConvertTo<UserAttempts>();
+                Dictionary<string, object> userAttempt = new Dictionary<string, object>
+                {
+                    { "score", attempt.score },
+                    { "uid" , attemptSnapshot.Id}
+                };
+                userAttempts.Add(userAttempt);
+                // Newline to separate entries
+                Debug.Log("");
+            }
+            result?.Invoke(userAttempts);
+        
+        });
+    }
+
+    //add a user attempt for a levelscore ID/Key
+    //* add functions don't actually need the calllback action but good to have incase you want to notify when done or smth
+    public void addUserLevelAttempts (string levelId, string userId, string userScore, Action<Dictionary<string, object>> result) {
+        FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
+        DocumentReference userAttemptsRef = db.Collection("levelscore").Document(levelId).Collection("userattempts").Document(userId);
+
+        Dictionary<string, object> userAttempt = new Dictionary<string, object>
+        {
+            { "score", userScore }
+        };
+
+        userAttemptsRef.SetAsync(userAttempt).ContinueWithOnMainThread(task => {
+            result?.Invoke(userAttempt);
+        });
+    }
+
+    //get a specific user's attempt for a levelscore ID/Key
+    public Task getSpecificUserLevelAttempt(string levelId, string userId, Action<UserAttempts> result)
+    {
+        FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
+        DocumentReference userAttemptsRef = db.Collection("levelscore").Document(levelId).Collection("userattempts").Document(userId);
+        
+        return userAttemptsRef.GetSnapshotAsync().ContinueWith((task) =>
+        {
+            var snapshot = task.Result;
+            UserAttempts userAttempt = new UserAttempts();
+            if (snapshot.Exists)
+            {
+                userAttempt = snapshot.ConvertTo<UserAttempts>();
+            }
+            else
+            {
+                Debug.Log(String.Format("Document {0} does not exist!", snapshot.Id));
             }
             result?.Invoke(userAttempt);
         });

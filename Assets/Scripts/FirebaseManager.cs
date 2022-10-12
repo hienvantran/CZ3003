@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Firebase;
 using Firebase.Auth;
 using Firebase.Extensions;
@@ -9,7 +10,6 @@ using TMPro;
 public class FirebaseManager : MonoBehaviour
 {
     public enum LoginState { IN, OUT }
-    [SerializeField] private FirestoreManager firestoreManager;
     //Firebase variables
     [Header("Firebase")]
     public DependencyStatus dependencyStatus;
@@ -19,23 +19,33 @@ public class FirebaseManager : MonoBehaviour
     //Login variables
     [Header("Login")]
     public LoginState loginstate = LoginState.OUT;
-    public GameObject loginGroup;
-    public TMP_InputField emailLoginField;
-    public TMP_InputField passwordLoginField;
-    public TMP_Text loginoutButtonText;
-    public TMP_Text statusLoginText;
+    private GameObject loginGroup;
+    private TMP_InputField emailLoginField;
+    private TMP_InputField passwordLoginField;
+    private TMP_Text statusLoginText;
 
     //Register variables
-    [Header("Register")]
-    public GameObject registerGroup;
-    public TMP_InputField usernameRegisterField;
-    public TMP_InputField emailRegisterField;
-    public TMP_InputField passwordRegisterField;
-    public TMP_InputField confirmPasswordRegisterField;
-    public TMP_Text statusRegisterText;
+    private GameObject registerGroup;
+    private TMP_InputField nameRegisterField;
+    private TMP_InputField emailRegisterField;
+    private TMP_InputField passwordRegisterField;
+    private TMP_InputField confirmPasswordRegisterField;
+    private TMP_Text statusRegisterText;
+
+    public static FirebaseManager instance;
 
     void Awake()
     {
+        if (!FirebaseManager.instance)
+            FirebaseManager.instance = this;
+
+        if (FirebaseManager.instance != this)
+            Destroy(this.gameObject);
+
+        DontDestroyOnLoad(this.gameObject);
+
+        StartCoroutine(GetObjectReferences());
+
         //Check that all of the necessary dependencies for Firebase are present on the system
         FirebaseApp.CheckAndFixDependenciesAsync().ContinueWith(task =>
         {
@@ -59,19 +69,36 @@ public class FirebaseManager : MonoBehaviour
         auth = FirebaseAuth.DefaultInstance;
     }
 
-    //Login & Logout Button
-    public void LoginoutButton()
+    //get object references
+    private IEnumerator GetObjectReferences()
     {
-        if (loginstate == LoginState.IN)
-        {
-            //if is logged in, user pressed logout
-            this.Logout();
-        }
-        else
-        {
-            //if is logged out, user pressed login
-            StartCoroutine(Login(emailLoginField.text, passwordLoginField.text));
-        }
+        //wait for 1 frame just to make sure GUI and display is drawn and accessible
+        yield return null;
+
+        //Login Group
+        loginGroup = GameObject.Find("LoginGroup");
+
+        emailLoginField = loginGroup.transform.Find("Email").GetComponent<TMP_InputField>();
+        passwordLoginField = loginGroup.transform.Find("Password").GetComponent<TMP_InputField>();
+        statusLoginText = loginGroup.transform.Find("Status").GetComponent<TMP_Text>();
+
+        //Register Group
+        registerGroup = GameObject.Find("RegisterGroup");
+        nameRegisterField = registerGroup.transform.Find("Name").GetComponent<TMP_InputField>();
+        emailRegisterField = registerGroup.transform.Find("Email").GetComponent<TMP_InputField>();
+        passwordRegisterField = registerGroup.transform.Find("Password").GetComponent<TMP_InputField>();
+        confirmPasswordRegisterField = registerGroup.transform.Find("Confirm Password").GetComponent<TMP_InputField>();
+        statusRegisterText = registerGroup.transform.Find("Status").GetComponent<TMP_Text>();
+
+        //set register group to inactive
+        registerGroup.SetActive(false);
+    }
+
+    //Login Button
+    public void LoginButton()
+    {
+        //if is logged out, user pressed login
+        StartCoroutine(Login(emailLoginField.text, passwordLoginField.text));
     }
 
     //clear input fields
@@ -80,7 +107,7 @@ public class FirebaseManager : MonoBehaviour
         emailLoginField.text = "";
         passwordLoginField.text = "";
         statusLoginText.text = "";
-        usernameRegisterField.text = "";
+        nameRegisterField.text = "";
         emailRegisterField.text = "";
         passwordRegisterField.text = "";
         confirmPasswordRegisterField.text = "";
@@ -106,10 +133,10 @@ public class FirebaseManager : MonoBehaviour
     //Perform Registration with Firebase
     public void DoRegisterButton()
     {
-        StartCoroutine(Register(emailRegisterField.text, passwordRegisterField.text, usernameRegisterField.text));
+        StartCoroutine(Register(emailRegisterField.text, passwordRegisterField.text, nameRegisterField.text));
     }
 
-    private void Logout()
+    public void Logout()
     {
         //sign out Firebase auth
         auth.SignOut();
@@ -117,9 +144,9 @@ public class FirebaseManager : MonoBehaviour
         Debug.LogFormat("User signed out successfully: {0} ({1})", User.DisplayName, User.Email);
         User = null;
         this.ClearFields();
-        statusLoginText.text = "Logged Out";
-        loginoutButtonText.text = "Login";
         loginstate = LoginState.OUT;
+        Destroy(this.gameObject);
+        SceneManager.LoadScene("Login");
     }
 
     private IEnumerator Login(string _email, string _password)
@@ -163,9 +190,8 @@ public class FirebaseManager : MonoBehaviour
             User = LoginTask.Result;
             Debug.LogFormat("User signed in successfully: {0} ({1})", User.DisplayName, User.Email);
             this.ClearFields();
-            statusLoginText.text = "Logged In";
-            loginoutButtonText.text = "Logout";
             loginstate = LoginState.IN;
+            SceneManager.LoadScene("MainMenu");
         }
     }
 
@@ -236,7 +262,7 @@ public class FirebaseManager : MonoBehaviour
                     else
                     {
                         //add firestore user data
-                        firestoreManager.addUser(User, res =>
+                        FirestoreManager.instance.addUser(User, res =>
                         {
                             //successful registration, go back to login screen
                             Debug.LogFormat("User Registered: {0} ({1})", res["Name"], res["UID"]);
