@@ -74,14 +74,23 @@ public class FirestoreManager : MonoBehaviour
 
     //add user details to firestore
     //* add functions don't actually need the calllback action but good to have incase you want to notify when done or smth
-    public void addUser (FirebaseUser User, Action<Dictionary<string, object>> result) {
+    public void addUser (FirebaseUser User, string role, Action<Dictionary<string, object>> result) {
         FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
         DocumentReference users = db.Collection("users").Document(User.UserId);
+        
+        // default value for role is Student
+        string roleOfUser = "Student";
+        if (role.ToUpper() == "STUDENT")
+        {
+            roleOfUser = "Student";
+        } else {
+            roleOfUser = "Teacher";
+        }
         Dictionary<string, object> user = new Dictionary<string, object>
         {
                 { "Name", User.DisplayName },
                 { "Email", User.Email },
-                { "Role", "Student" },
+                { "Role", roleOfUser },
                 { "UID", User.UserId },
                 { "AddProgress", 0 },
                 { "SubProgress", 0 },

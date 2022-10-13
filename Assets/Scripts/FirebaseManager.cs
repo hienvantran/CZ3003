@@ -28,6 +28,7 @@ public class FirebaseManager : MonoBehaviour
     private GameObject registerGroup;
     private TMP_InputField nameRegisterField;
     private TMP_InputField emailRegisterField;
+    private TMP_InputField roleRegisterField;
     private TMP_InputField passwordRegisterField;
     private TMP_InputField confirmPasswordRegisterField;
     private TMP_Text statusRegisterText;
@@ -86,6 +87,7 @@ public class FirebaseManager : MonoBehaviour
         registerGroup = GameObject.Find("RegisterGroup");
         nameRegisterField = registerGroup.transform.Find("Name").GetComponent<TMP_InputField>();
         emailRegisterField = registerGroup.transform.Find("Email").GetComponent<TMP_InputField>();
+        roleRegisterField = registerGroup.transform.Find("Role").GetComponent<TMP_InputField>();
         passwordRegisterField = registerGroup.transform.Find("Password").GetComponent<TMP_InputField>();
         confirmPasswordRegisterField = registerGroup.transform.Find("Confirm Password").GetComponent<TMP_InputField>();
         statusRegisterText = registerGroup.transform.Find("Status").GetComponent<TMP_Text>();
@@ -109,6 +111,7 @@ public class FirebaseManager : MonoBehaviour
         statusLoginText.text = "";
         nameRegisterField.text = "";
         emailRegisterField.text = "";
+        roleRegisterField.text = "";
         passwordRegisterField.text = "";
         confirmPasswordRegisterField.text = "";
         statusRegisterText.text = "";
@@ -133,7 +136,7 @@ public class FirebaseManager : MonoBehaviour
     //Perform Registration with Firebase
     public void DoRegisterButton()
     {
-        StartCoroutine(Register(emailRegisterField.text, passwordRegisterField.text, nameRegisterField.text));
+        StartCoroutine(Register(emailRegisterField.text, passwordRegisterField.text, nameRegisterField.text, roleRegisterField.text));
     }
 
     public void Logout()
@@ -195,8 +198,11 @@ public class FirebaseManager : MonoBehaviour
         }
     }
 
-    private IEnumerator Register(string _email, string _password, string _username)
+    private IEnumerator Register(string _email, string _password, string _username, string _role)
     {
+        List<string> strings = new List<string>();
+        strings.Add("STUDENT");
+        strings.Add("TEACHER");
         if (_username == "")
         {
             //ensure username is filled
@@ -207,6 +213,12 @@ public class FirebaseManager : MonoBehaviour
             //ensure password and confirm password match
             statusRegisterText.text = "Passwords Do Not Match";
         }
+        else if(!strings.Contains(_role.ToUpper()))
+        {
+            //ensure password and confirm password match
+            statusRegisterText.text = "Role must be Student or Teacher";
+        }
+
         else 
         {
             //Firebase create user with email & pass
@@ -262,7 +274,7 @@ public class FirebaseManager : MonoBehaviour
                     else
                     {
                         //add firestore user data
-                        FirestoreManager.instance.addUser(User, res =>
+                        FirestoreManager.instance.addUser(User, _role, res =>
                         {
                             //successful registration, go back to login screen
                             Debug.LogFormat("User Registered: {0} ({1})", res["Name"], res["UID"]);
