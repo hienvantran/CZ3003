@@ -6,6 +6,7 @@ using Firebase;
 using Firebase.Auth;
 using Firebase.Extensions;
 using TMPro;
+using System;
 
 public class FirebaseManager : MonoBehaviour
 {
@@ -33,14 +34,29 @@ public class FirebaseManager : MonoBehaviour
     private TMP_InputField confirmPasswordRegisterField;
     private TMP_Text statusRegisterText;
 
-    public static FirebaseManager instance;
+    private static FirebaseManager m_Instance;
+
+    //Test variables
+    public bool instantiated = false;
+
+    public static FirebaseManager Instance
+    {
+        get
+        {
+            if (m_Instance == null)
+            {
+                m_Instance = new GameObject("FirebaseManager").AddComponent<FirebaseManager>();
+            }
+            return m_Instance;
+        }
+    }
 
     void Awake()
     {
-        if (!FirebaseManager.instance)
-            FirebaseManager.instance = this;
+        if (!FirebaseManager.m_Instance)
+            FirebaseManager.m_Instance = this;
 
-        if (FirebaseManager.instance != this)
+        if (FirebaseManager.Instance != this)
             Destroy(this.gameObject);
 
         DontDestroyOnLoad(this.gameObject);
@@ -68,6 +84,12 @@ public class FirebaseManager : MonoBehaviour
     {
         Debug.Log("Setting up Firebase Auth");
         auth = FirebaseAuth.DefaultInstance;
+        instantiated = true;
+    }
+
+    public FirebaseUser GetUser()
+    {
+        return User;
     }
 
     //get object references
@@ -152,7 +174,7 @@ public class FirebaseManager : MonoBehaviour
         SceneManager.LoadScene("Login");
     }
 
-    private IEnumerator Login(string _email, string _password)
+    public IEnumerator Login(string _email, string _password, Action<string> result = null)
     {
         //Firebase auth signin with email & pass
         var LoginTask = auth.SignInWithEmailAndPasswordAsync(_email, _password);
@@ -186,6 +208,7 @@ public class FirebaseManager : MonoBehaviour
                     break;
             }
             statusLoginText.text = message;
+            result?.Invoke(message);
         }
         else
         {
@@ -195,6 +218,7 @@ public class FirebaseManager : MonoBehaviour
             this.ClearFields();
             loginstate = LoginState.IN;
             SceneManager.LoadScene("MainMenu");
+            result?.Invoke("Login Success");
         }
     }
 
@@ -274,7 +298,7 @@ public class FirebaseManager : MonoBehaviour
                     else
                     {
                         //add firestore user data
-                        FirestoreManager.instance.addUser(User, _role, res =>
+                        FirestoreManager.Instance.addUser(User, _role, res =>
                         {
                             //successful registration, go back to login screen
                             Debug.LogFormat("User Registered: {0} ({1})", res["Name"], res["UID"]);

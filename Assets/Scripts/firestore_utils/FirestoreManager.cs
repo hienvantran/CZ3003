@@ -58,15 +58,27 @@ public class UserAttempts
 
 public class FirestoreManager : MonoBehaviour
 {
-    public static FirestoreManager instance;
+    private static FirestoreManager m_Instance;
+
+    public static FirestoreManager Instance
+    {
+        get
+        {
+            if (m_Instance == null)
+            {
+                m_Instance = new GameObject("FirestoreManager").AddComponent<FirestoreManager>();
+            }
+            return m_Instance;
+        }
+    }
 
     //instance
     private void Awake()
     {
-        if (!FirestoreManager.instance)
-            FirestoreManager.instance = this;
+        if (!FirestoreManager.m_Instance)
+            FirestoreManager.m_Instance = this;
 
-        if (FirestoreManager.instance != this)
+        if (FirestoreManager.m_Instance != this)
             Destroy(this.gameObject);
 
         DontDestroyOnLoad(this.gameObject);
@@ -117,27 +129,33 @@ public class FirestoreManager : MonoBehaviour
     }
 
     //get user world progress
-    public Task getUserWorldProgress(FirebaseUser User, Action<Dictionary<string, int>> result)
+    public Task getUserWorldProgress(Action<Dictionary<string, int>> result)
     {
         FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
-        DocumentReference docRef = db.Collection("users").Document(User.UserId);
-
+        Debug.Log("Db get");
+        DocumentReference docRef = db.Collection("users").Document(FirebaseManager.Instance.User.UserId);
+        Debug.Log("User get");
         return docRef.GetSnapshotAsync().ContinueWith((task) =>
         {
+            Debug.Log("Doc get");
             var snapshot = task.Result;
+            Debug.Log("Snapshot get");
             Dictionary<string, int> userProg = new Dictionary<string, int>();
             if (snapshot.Exists)
             {
+                Debug.Log("Snapshot get 2");
                 User refUser = snapshot.ConvertTo<User>();
                 userProg.Add("Add", refUser.AddProgress);
                 userProg.Add("Sub", refUser.SubProgress);
                 userProg.Add("Mul", refUser.MulProgress);
                 userProg.Add("Div", refUser.DivProgress);
+                Debug.Log(refUser);
                 result?.Invoke(userProg);
             }
             else
             {
                 Debug.Log(String.Format("Document {0} does not exist!", snapshot.Id));
+                result?.Invoke(null);
             }
             return;
         });

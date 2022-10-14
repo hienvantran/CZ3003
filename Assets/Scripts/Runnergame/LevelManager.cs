@@ -55,14 +55,14 @@ public class LevelManager : MonoBehaviour
     public IEnumerator GetUserProgress()
     {
         //check firebase auth confirm user login
-        if (FirebaseManager.instance.User == null)
+        if (FirebaseManager.Instance.User == null)
         {
             Debug.LogWarning("No user account detected, world progress fields will be set to zero");
             yield break;
         }
 
         //pull firestore user progress fields
-        var getProgressTask = FirestoreManager.instance.getUserWorldProgress(FirebaseManager.instance.User, res =>
+        var getProgressTask = FirestoreManager.Instance.getUserWorldProgress(res =>
         {
             addProgress = res["Add"];
             subProgress = res["Sub"];
@@ -81,7 +81,7 @@ public class LevelManager : MonoBehaviour
     public IEnumerator doUpdateUserProgress(int score, bool unlockNext, bool isCus)
     {
         //check firebase auth confirm user login
-        if (FirebaseManager.instance.User == null)
+        if (FirebaseManager.Instance.User == null)
         {
             Debug.LogWarning("No user account detected, skipping firestore update");
             yield break;
@@ -93,7 +93,7 @@ public class LevelManager : MonoBehaviour
         if (isCus)
         {
             //check for existing attempt and update higher score
-            var checkExistTask = FirestoreManager.instance.getSpecificUserAssignmentAttempt(currentSeed, FirebaseManager.instance.User.UserId, res =>
+            var checkExistTask = FirestoreManager.Instance.getSpecificUserAssignmentAttempt(currentSeed, FirebaseManager.Instance.User.UserId, res =>
             {
                 prevScore = int.Parse(res.score);
             });
@@ -101,9 +101,9 @@ public class LevelManager : MonoBehaviour
             yield return new WaitUntil(predicate: () => checkExistTask.IsCompleted);
 
             //add user attempt for assignment
-            FirestoreManager.instance.addUserAssignmentAttempts(currentSeed, FirebaseManager.instance.User.UserId, Mathf.Max(prevScore, score).ToString(), res =>
+            FirestoreManager.Instance.addUserAssignmentAttempts(currentSeed, FirebaseManager.Instance.User.UserId, Mathf.Max(prevScore, score).ToString(), res =>
             {
-                Debug.Log("Pushed user(" + FirebaseManager.instance.User.UserId + ") attempt for " + currentSeed + ", score: " + Mathf.Max(prevScore, score));
+                Debug.Log("Pushed user(" + FirebaseManager.Instance.User.UserId + ") attempt for " + currentSeed + ", score: " + Mathf.Max(prevScore, score));
             });
         }
         else
@@ -118,7 +118,7 @@ public class LevelManager : MonoBehaviour
                     if (unlockNext)
                     {
                         addProgress++;
-                        FirestoreManager.instance.updateUserWorldProgress(FirebaseManager.instance.User, "AddProgress", addProgress);
+                        FirestoreManager.Instance.updateUserWorldProgress(FirebaseManager.Instance.User, "AddProgress", addProgress);
                     }
                     break;
                 case 'S':
@@ -127,7 +127,7 @@ public class LevelManager : MonoBehaviour
                     if (unlockNext)
                     {
                         subProgress++;
-                        FirestoreManager.instance.updateUserWorldProgress(FirebaseManager.instance.User, "SubProgress", subProgress);
+                        FirestoreManager.Instance.updateUserWorldProgress(FirebaseManager.Instance.User, "SubProgress", subProgress);
                     }
                     break;
                 case 'M':
@@ -136,7 +136,7 @@ public class LevelManager : MonoBehaviour
                     if (unlockNext)
                     {
                         mulProgress++;
-                        FirestoreManager.instance.updateUserWorldProgress(FirebaseManager.instance.User, "MulProgress", mulProgress);
+                        FirestoreManager.Instance.updateUserWorldProgress(FirebaseManager.Instance.User, "MulProgress", mulProgress);
                     }
                     break;
                 case 'D':
@@ -145,13 +145,13 @@ public class LevelManager : MonoBehaviour
                     if (unlockNext)
                     {
                         divProgress++;
-                        FirestoreManager.instance.updateUserWorldProgress(FirebaseManager.instance.User, "DivProgress", divProgress);
+                        FirestoreManager.Instance.updateUserWorldProgress(FirebaseManager.Instance.User, "DivProgress", divProgress);
                     }
                     break;
             }
 
             //check for existing attempt and update higher score
-            var checkExistTask = FirestoreManager.instance.getSpecificUserLevelAttempt(lvlID, FirebaseManager.instance.User.UserId, res =>
+            var checkExistTask = FirestoreManager.Instance.getSpecificUserLevelAttempt(lvlID, FirebaseManager.Instance.User.UserId, res =>
             {
                 prevScore = int.Parse(res.score);
             });
@@ -159,9 +159,9 @@ public class LevelManager : MonoBehaviour
             yield return new WaitUntil(predicate: () => checkExistTask.IsCompleted);
 
             //push firestore user level attempt
-            FirestoreManager.instance.addUserLevelAttempts(lvlID, FirebaseManager.instance.User.UserId, Mathf.Max(prevScore, score).ToString(), res =>
+            FirestoreManager.Instance.addUserLevelAttempts(lvlID, FirebaseManager.Instance.User.UserId, Mathf.Max(prevScore, score).ToString(), res =>
             {
-                Debug.Log("Pushed user(" + FirebaseManager.instance.User.UserId + ") attempt for " + lvlID + ", score: " + Mathf.Max(prevScore, score));
+                Debug.Log("Pushed user(" + FirebaseManager.Instance.User.UserId + ") attempt for " + lvlID + ", score: " + Mathf.Max(prevScore, score));
             });
         }
     }
