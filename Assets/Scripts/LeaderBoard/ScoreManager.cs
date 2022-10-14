@@ -31,12 +31,11 @@ public class ScoreManager : MonoBehaviour
     private void RetrieveUserScoreData()
     {
         string worldSelected = selectionManager.GetWorldSelected();
-        string zoneSelected = selectionManager.GetZoneSelected();
         string levelSelected = selectionManager.GetLevelSelected();
 
         scoreData = new UserScoreData();
 
-        // retrieve user and total scores based on world, zone, level
+        // retrieve user and total scores based on world, level
         // currently add dummy values for testing
         if (worldSelected == "Addition")
         {

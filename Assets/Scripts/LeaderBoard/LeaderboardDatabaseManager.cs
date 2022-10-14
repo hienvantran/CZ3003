@@ -9,38 +9,35 @@ using System;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 
-public class WorldZoneLevel
+public class WorldLevel
 
 {
     public string world { get; set; }
     public string level { get; set; }
-    public string zone { get; set; }
 
-    public WorldZoneLevel(string world, string level, string zone)
+    public WorldLevel(string world, string level)
     {
         this.world = world;
-        this.zone = zone;
         this.level = level;
     }
 }
 
-public class WorldZoneLevelParser
+public class WorldLevelParser
 {
-    private static Regex parseRegex = new Regex(@"^([^-\s]*?)-([^-\s]*?)-([^-\s]*?)$");
-    public static string formatIdFromWorldZoneLevel(string world, string zone, string level)
+    private static Regex parseRegex = new Regex(@"^([^-\s]*?)-([^-\s]*?)$");
+    public static string formatIdFromWorldLevel(string world, string level)
     {
-        return $"{world}-{zone}-{level}";
+        return $"{world}-{level}";
     }
 
     // parse world, zone, level from 
-    public static WorldZoneLevel parseFromScoreDocumentId(string scoreDocumentId)
+    public static WorldLevel parseFromScoreDocumentId(string scoreDocumentId)
     {
         Match match = parseRegex.Match(scoreDocumentId);
         string world = match.Groups[1].Value;
-        string zone = match.Groups[2].Value;
-        string level = match.Groups[3].Value;
+        string level = match.Groups[1].Value;
 
-        return new WorldZoneLevel(world, zone, level);
+        return new WorldLevel(world, level);
     }
 
 }
@@ -78,43 +75,32 @@ public class LeaderboardDatabaseManager : MonoBehaviour
     }
 
     //get worlds and list of zones in world
-    public void getWorldsZonesLevels(Action<Dictionary<string, Dictionary<string, List<string>>>> result)
+    public void getWorldsLevels(Action<Dictionary<string, List<string>>> result)
     {
         db = FirebaseFirestore.DefaultInstance;
         CollectionReference worldsRef = db.Collection(DATABASE);
         worldsRef.GetSnapshotAsync().ContinueWith((task) =>
         {
-            Dictionary<string, Dictionary<string, List<string>>> worldsZonesLevels = new Dictionary<string, Dictionary<string, List<string>>>();
-            QuerySnapshot worldsZonesLevelsQuerySnapshot = task.Result;
-            foreach (DocumentSnapshot scoreDocument in worldsZonesLevelsQuerySnapshot.Documents)
+            Dictionary<string, List<string>> worldsLevels = new Dictionary<string, List<string>>();
+            QuerySnapshot worldsLevelsQuerySnapshot = task.Result;
+            foreach (DocumentSnapshot scoreDocument in worldsLevelsQuerySnapshot.Documents)
             {
-                WorldZoneLevel worldZoneLevel = WorldZoneLevelParser.parseFromScoreDocumentId(scoreDocument.Id);
-                string world = worldZoneLevel.world;
-                string zone = worldZoneLevel.zone;
-                string level = worldZoneLevel.level;
+                WorldLevel worldLevel = WorldLevelParser.parseFromScoreDocumentId(scoreDocument.Id);
+                string world = worldLevel.world;
+                string level = worldLevel.level;
 
-                Dictionary<string, List<string>> zonesLevelsInWorld;
-                List<string> levelsInZone;
-                if (worldsZonesLevels.TryGetValue(world, out zonesLevelsInWorld))
+                List<string> levelsInWorld;
+                if (worldsLevels.TryGetValue(world, out levelsInWorld))
                 {
-                    if (zonesLevelsInWorld.TryGetValue(zone, out levelsInZone))
-                    {
-                        levelsInZone.Add(level);
-                    }
-                    else
-                    {
-                        zonesLevelsInWorld.Add(zone, new List<string> { level });
-                    }
+
+                    levelsInWorld.Add(level);
                 }
                 else
                 {
-                    worldsZonesLevels.Add(world, new Dictionary<string, List<string>>
-                    {
-                        {zone, new List<string>{level}}
-                    });
+                    worldsLevels.Add(world, new List<string> { level });
                 }
             }
-            result?.Invoke(worldsZonesLevels);
+            result?.Invoke(worldsLevels);
         });
     }
 }
