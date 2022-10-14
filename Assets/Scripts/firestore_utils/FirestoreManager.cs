@@ -132,24 +132,18 @@ public class FirestoreManager : MonoBehaviour
     public Task getUserWorldProgress(Action<Dictionary<string, int>> result)
     {
         FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
-        Debug.Log("Db get");
         DocumentReference docRef = db.Collection("users").Document(FirebaseManager.Instance.User.UserId);
-        Debug.Log("User get");
         return docRef.GetSnapshotAsync().ContinueWith((task) =>
         {
-            Debug.Log("Doc get");
             var snapshot = task.Result;
-            Debug.Log("Snapshot get");
             Dictionary<string, int> userProg = new Dictionary<string, int>();
             if (snapshot.Exists)
             {
-                Debug.Log("Snapshot get 2");
                 User refUser = snapshot.ConvertTo<User>();
                 userProg.Add("Add", refUser.AddProgress);
                 userProg.Add("Sub", refUser.SubProgress);
                 userProg.Add("Mul", refUser.MulProgress);
                 userProg.Add("Div", refUser.DivProgress);
-                Debug.Log(refUser);
                 result?.Invoke(userProg);
             }
             else
@@ -195,6 +189,7 @@ public class FirestoreManager : MonoBehaviour
             }
             else
             {
+                result?.Invoke(null);
                 Debug.Log(String.Format("Document {0} does not exist!", snapshot.Id));
             }
             return;
@@ -326,15 +321,15 @@ public class FirestoreManager : MonoBehaviour
     }
 
     //get a specific user's attempt for a levelscore ID/Key
-    public Task getSpecificUserLevelAttempt(string levelId, string userId, Action<UserAttempts> result)
+    public Task getSpecificUserLevelAttempt(string levelId, Action<UserAttempts> result)
     {
         FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
-        DocumentReference userAttemptsRef = db.Collection("levelscore").Document(levelId).Collection("userattempts").Document(userId);
+        DocumentReference userAttemptsRef = db.Collection("levelscore").Document(levelId).Collection("userattempts").Document(FirebaseManager.Instance.User.UserId);
         
         return userAttemptsRef.GetSnapshotAsync().ContinueWith((task) =>
         {
             var snapshot = task.Result;
-            UserAttempts userAttempt = new UserAttempts();
+            UserAttempts userAttempt = null;
             if (snapshot.Exists)
             {
                 userAttempt = snapshot.ConvertTo<UserAttempts>();

@@ -19,24 +19,84 @@ public class NetworkTests
             "yoho@mail.com",
             "123456");
 
-        int addProgress = 0, subProgress = 0, mulProgress = 0, divProgress = 0;
-        bool taskComplete = false;
-        fsm.getUserWorldProgress(res =>
+        yield return fsm.getUserWorldProgress(res =>
         {
-            addProgress = res["Add"];
-            subProgress = res["Sub"];
-            mulProgress = res["Mul"];
-            divProgress = res["Div"];
-            taskComplete = true;
-            Debug.Log(res);
+            Assert.IsNotNull(res);
         });
-        yield return new WaitUntil(() => taskComplete);
-        Debug.Log(addProgress);
-        bool isEqual = (addProgress == 3 && subProgress == 1 && divProgress == 2 && mulProgress == 1);
-
-        Assert.AreEqual(true, isEqual);
-
     }
 
+    [UnityTest]
+    public IEnumerator GetAssignmentQnStringById()
+    {
+        yield return SceneManager.LoadSceneAsync("Login");
+        FirebaseManager fm = FirebaseManager.Instance;
+        yield return new WaitUntil(() => fm.instantiated);
+        FirestoreManager fsm = FirestoreManager.Instance;
 
+        yield return fsm.getAssignmentQnsStrbyID("2eybpX", res =>
+        {
+            //Assert.AreEqual("08!2A2!1A3!1A2!1A3!1A3!3A1!2A2!1A3", res);
+            Assert.IsNotNull(res);
+        });
+    }
+
+    [UnityTest]
+    public IEnumerator GetAssignmentAttemptsById()
+    {
+        yield return SceneManager.LoadSceneAsync("Login");
+        FirebaseManager fm = FirebaseManager.Instance;
+        yield return new WaitUntil(() => fm.instantiated);
+        FirestoreManager fsm = FirestoreManager.Instance;
+
+        yield return fsm.getAssignmentAttemptsbyID("aBcDeF", res =>
+        {
+            Assert.IsNotEmpty(res);
+        });
+    }
+
+    [UnityTest]
+    public IEnumerator GetEmptyAssignmentQnStringById()
+    {
+        yield return SceneManager.LoadSceneAsync("Login");
+        FirebaseManager fm = FirebaseManager.Instance;
+        yield return new WaitUntil(() => fm.instantiated);
+        FirestoreManager fsm = FirestoreManager.Instance;
+
+        yield return fsm.getAssignmentQnsStrbyID("emptycase", res =>
+        {
+            //Assert.AreEqual("08!2A2!1A3!1A2!1A3!1A3!3A1!2A2!1A3", res);
+            Assert.IsNull(res);
+        });
+    }
+
+    [UnityTest]
+    public IEnumerator GetEmptyAssignmentAttemptsById()
+    {
+        yield return SceneManager.LoadSceneAsync("Login");
+        FirebaseManager fm = FirebaseManager.Instance;
+        yield return new WaitUntil(() => fm.instantiated);
+        FirestoreManager fsm = FirestoreManager.Instance;
+
+        yield return fsm.getAssignmentAttemptsbyID("emptycase", res =>
+        {
+            Assert.IsEmpty(res);
+        });
+    }
+
+    [UnityTest]
+    public IEnumerator GetSpecificUserLevelAttempt()
+    {
+        yield return SceneManager.LoadSceneAsync("Login");
+        FirebaseManager fm = FirebaseManager.Instance;
+        yield return new WaitUntil(() => fm.instantiated);
+        FirestoreManager fsm = FirestoreManager.Instance;
+        yield return fm.Login(
+            "yoho@mail.com",
+            "123456");
+
+        yield return fsm.getSpecificUserLevelAttempt("add-1", res =>
+        {
+            Assert.IsNotNull(res);
+        });
+    }
 }

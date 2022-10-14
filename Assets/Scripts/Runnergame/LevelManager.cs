@@ -151,7 +151,7 @@ public class LevelManager : MonoBehaviour
             }
 
             //check for existing attempt and update higher score
-            var checkExistTask = FirestoreManager.Instance.getSpecificUserLevelAttempt(lvlID, FirebaseManager.Instance.User.UserId, res =>
+            var checkExistTask = FirestoreManager.Instance.getSpecificUserLevelAttempt(lvlID, res =>
             {
                 prevScore = int.Parse(res.score);
             });
