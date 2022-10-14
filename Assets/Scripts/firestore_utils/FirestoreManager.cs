@@ -92,6 +92,13 @@ public class WorldLevelParser
 public class FirestoreManager : MonoBehaviour
 {
     public static FirestoreManager instance;
+    protected FirebaseFirestore db
+    {
+        get
+        {
+            return FirebaseFirestore.DefaultInstance;
+        }
+    }
 
     //instance
     private void Awake()
@@ -109,7 +116,6 @@ public class FirestoreManager : MonoBehaviour
     //* add functions don't actually need the calllback action but good to have incase you want to notify when done or smth
     public void addUser(FirebaseUser User, string role, Action<Dictionary<string, object>> result)
     {
-        FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
         DocumentReference users = db.Collection("users").Document(User.UserId);
 
         // default value for role is Student
@@ -144,7 +150,6 @@ public class FirestoreManager : MonoBehaviour
     //update user world progress
     public void updateUserWorldProgress(FirebaseUser User, string field, int val)
     {
-        FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
         DocumentReference docRef = db.Collection("users").Document(User.UserId);
 
         docRef.UpdateAsync(field, val).ContinueWithOnMainThread(task =>
@@ -156,7 +161,6 @@ public class FirestoreManager : MonoBehaviour
     //get user world progress
     public Task getUserWorldProgress(FirebaseUser User, Action<Dictionary<string, int>> result)
     {
-        FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
         DocumentReference docRef = db.Collection("users").Document(User.UserId);
 
         return docRef.GetSnapshotAsync().ContinueWith((task) =>
@@ -184,7 +188,6 @@ public class FirestoreManager : MonoBehaviour
     //* add functions don't actually need the calllback action but good to have incase you want to notify when done or smth
     public void addAssignment(string assignmentId, string qnsStr, Action<Dictionary<string, object>> result)
     {
-        FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
         DocumentReference assignRef = db.Collection("assignments").Document(assignmentId);
 
         Dictionary<string, object> questionsStr = new Dictionary<string, object>
@@ -201,7 +204,6 @@ public class FirestoreManager : MonoBehaviour
     //get assignment question string by assignment ID/Key
     public Task getAssignmentQnsStrbyID(string assignID, Action<string> result)
     {
-        FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
         DocumentReference assignRef = db.Collection("assignments").Document(assignID);
 
         return assignRef.GetSnapshotAsync().ContinueWith((task) =>
@@ -225,7 +227,6 @@ public class FirestoreManager : MonoBehaviour
     //get user attempts for an assignment ID/Key
     public Task getAssignmentAttemptsbyID(string assignID, Action<List<Dictionary<string, object>>> result)
     {
-        FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
 
         CollectionReference attemptsRef = db.Collection("assignments").Document(assignID).Collection("userattempts");
         return attemptsRef.GetSnapshotAsync().ContinueWith((task) =>
@@ -253,7 +254,6 @@ public class FirestoreManager : MonoBehaviour
     //* add functions don't actually need the calllback action but good to have incase you want to notify when done or smth
     public void addUserAssignmentAttempts(string assignmentId, string userId, string userScore, Action<Dictionary<string, object>> result)
     {
-        FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
         DocumentReference assignRef = db.Collection("assignments").Document(assignmentId);
         DocumentReference userAttemptsRef = assignRef.Collection("userattempts").Document(userId);
 
@@ -271,7 +271,6 @@ public class FirestoreManager : MonoBehaviour
     //get a specific user's attempt for an assignment ID/Key
     public Task getSpecificUserAssignmentAttempt(string assignmentId, string userId, Action<UserAttempts> result)
     {
-        FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
         DocumentReference assignRef = db.Collection("assignments").Document(assignmentId);
         DocumentReference userAttemptsRef = assignRef.Collection("userattempts").Document(userId);
 
@@ -298,7 +297,6 @@ public class FirestoreManager : MonoBehaviour
     //* add functions don't actually need the calllback action but good to have incase you want to notify when done or smth
     public void addLevel(string levelId)
     {
-        FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
         DocumentReference levelRef = db.Collection("levelscore").Document(levelId);
         var empty_object = new Dictionary<string, object>();
         levelRef.SetAsync(empty_object).ContinueWithOnMainThread(task =>
@@ -310,7 +308,6 @@ public class FirestoreManager : MonoBehaviour
     //get user attempts for a levelscore ID/Key
     public Task getLevelAttemptsbyID(string levelId, Action<List<Dictionary<string, object>>> result)
     {
-        FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
         CollectionReference attemptsRef = db.Collection("levelscore").Document(levelId).Collection("userattempts");
 
         return attemptsRef.GetSnapshotAsync().ContinueWith((task) =>
@@ -338,7 +335,6 @@ public class FirestoreManager : MonoBehaviour
     //* add functions don't actually need the calllback action but good to have incase you want to notify when done or smth
     public void addUserLevelAttempts(string levelId, string userId, string userScore, Action<Dictionary<string, object>> result)
     {
-        FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
         DocumentReference userAttemptsRef = db.Collection("levelscore").Document(levelId).Collection("userattempts").Document(userId);
 
         Dictionary<string, object> userAttempt = new Dictionary<string, object>
@@ -355,7 +351,6 @@ public class FirestoreManager : MonoBehaviour
     //get a specific user's attempt for a levelscore ID/Key
     public Task getSpecificUserLevelAttempt(string levelId, string userId, Action<UserAttempts> result)
     {
-        FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
         DocumentReference userAttemptsRef = db.Collection("levelscore").Document(levelId).Collection("userattempts").Document(userId);
 
         return userAttemptsRef.GetSnapshotAsync().ContinueWith((task) =>
@@ -377,7 +372,6 @@ public class FirestoreManager : MonoBehaviour
     //get worlds and list of levels in world
     public Task getWorldsLevels(Action<Dictionary<string, List<string>>> result)
     {
-        FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
         CollectionReference worldsRef = db.Collection("levelscore");
         Debug.Log("retrieving content hierarchy from firestore");
         return worldsRef.GetSnapshotAsync().ContinueWith((task) =>
