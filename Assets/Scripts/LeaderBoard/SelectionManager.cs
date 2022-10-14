@@ -11,8 +11,6 @@ public class SelectionManager : MonoBehaviour
     [SerializeField] private TMP_Dropdown worldDropdown;
     [SerializeField] private TMP_Dropdown levelDropdown;
 
-    [SerializeField] private LeaderboardDatabaseManager leaderboardDatabaseManager;
-
     // keep tracks of the list of levels each world contains
     private Dictionary<string, List<string>> worldsLevels;
 
@@ -21,21 +19,26 @@ public class SelectionManager : MonoBehaviour
 
     void Start()
     {
-        GetWorldLevelData();
+        Dictionary<string, List<string>> worldsLevels = new Dictionary<string, List<string>>();
+        Debug.Log("Start trying to retrieve content hierarchy");
+        StartCoroutine(GetWorldLevelData());
     }
 
     // Get the list of worlds and levels
-    void GetWorldLevelData()
+    public IEnumerator GetWorldLevelData()
     {
-        leaderboardDatabaseManager.getWorldsLevels(
+        var getContentHierarchyTask = FirestoreManager.instance.getWorldsLevels(
             res =>
             {
                 worldsLevels = res;
-                UpdateWorldOptions();
-                UpdateLevelOptions();
-                SetAutoUpdateOnValueChanged();
             }
         );
+        yield return new WaitUntil(predicate: () => getContentHierarchyTask.IsCompleted);
+        Debug.Log("Update world and level dropdowns");
+        UpdateWorldOptions();
+        UpdateLevelOptions();
+        SetAutoUpdateOnValueChanged();
+        OnSelectionChanged();
     }
     void UpdateWorldOptions()
     {

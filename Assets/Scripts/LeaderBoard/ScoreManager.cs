@@ -15,7 +15,6 @@ public class ScoreManager : MonoBehaviour
     void Start()
     {
         rowUiList = new List<RowUi>();
-        UpdateScoreDisplay();
         selectionManager.SelectionChanged += UpdateScoreDisplay;
     }
 

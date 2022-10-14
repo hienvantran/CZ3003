@@ -7,7 +7,7 @@ using Firebase.Firestore;
 using Firebase.Extensions;
 using System;
 using System.Threading.Tasks;
-
+using System.Text.RegularExpressions;
 
 [FirestoreData]
 public class User
@@ -54,6 +54,39 @@ public class UserAttempts
 {
     [FirestoreProperty]
     public string score { get; set; }
+}
+
+public class WorldLevel
+
+{
+    public string world { get; set; }
+    public string level { get; set; }
+
+    public WorldLevel(string world, string level)
+    {
+        this.world = world;
+        this.level = level;
+    }
+}
+
+public class WorldLevelParser
+{
+    private static Regex parseRegex = new Regex(@"^([^-\s]*?)-([^-\s]*?)$");
+    public static string formatIdFromWorldLevel(string world, string level)
+    {
+        return $"{world}-{level}";
+    }
+
+    // parse world, zone, level from 
+    public static WorldLevel parseFromScoreDocumentId(string scoreDocumentId)
+    {
+        Match match = parseRegex.Match(scoreDocumentId);
+        string world = match.Groups[1].Value;
+        string level = match.Groups[2].Value;
+
+        return new WorldLevel(world, level);
+    }
+
 }
 
 public class FirestoreManager : MonoBehaviour
@@ -338,6 +371,37 @@ public class FirestoreManager : MonoBehaviour
                 Debug.Log(String.Format("Document {0} does not exist!", snapshot.Id));
             }
             result?.Invoke(userAttempt);
+        });
+    }
+
+    //get worlds and list of levels in world
+    public Task getWorldsLevels(Action<Dictionary<string, List<string>>> result)
+    {
+        FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
+        CollectionReference worldsRef = db.Collection("levelscore");
+        Debug.Log("retrieving content hierarchy from firestore");
+        return worldsRef.GetSnapshotAsync().ContinueWith((task) =>
+        {
+            Dictionary<string, List<string>> worldsLevels = new Dictionary<string, List<string>>();
+            QuerySnapshot worldsLevelsQuerySnapshot = task.Result;
+            foreach (DocumentSnapshot scoreDocument in worldsLevelsQuerySnapshot.Documents)
+            {
+                WorldLevel worldLevel = WorldLevelParser.parseFromScoreDocumentId(scoreDocument.Id);
+                string world = worldLevel.world;
+                string level = worldLevel.level;
+
+                List<string> levelsInWorld;
+                if (worldsLevels.TryGetValue(world, out levelsInWorld))
+                {
+
+                    levelsInWorld.Add(level);
+                }
+                else
+                {
+                    worldsLevels.Add(world, new List<string> { level });
+                }
+            }
+            result?.Invoke(worldsLevels);
         });
     }
 }
