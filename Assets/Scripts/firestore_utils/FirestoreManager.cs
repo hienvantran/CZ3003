@@ -150,9 +150,8 @@ public class FirestoreManager : MonoBehaviour
     //get assignment question string by assignment ID/Key
     public Task getUsernamebyID(string uid, Action<string> result)
     {
-        FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
         DocumentReference users = db.Collection("users").Document(uid);
-        
+
         return users.GetSnapshotAsync().ContinueWith((task) =>
         {
             var snapshot = task.Result;

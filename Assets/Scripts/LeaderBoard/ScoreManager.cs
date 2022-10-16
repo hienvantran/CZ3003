@@ -9,6 +9,7 @@ public class ScoreManager : MonoBehaviour
 {
     private UserScoreData scoreData;
     private Dictionary<string, int> scoreSelectedLevels;
+    private string current_username;
     [SerializeField] private SelectionManager selectionManager;
     [SerializeField] private RowUi rowUi;
 
@@ -40,15 +41,26 @@ public class ScoreManager : MonoBehaviour
         }
 
         Debug.Log("Done getting user scores from selected world and level");
-        Debug.Log($"Length of levels: {scoreSelectedLevels.Count}");
 
         foreach (KeyValuePair<string, int> userScorePair in scoreSelectedLevels)
         {
-            scoreData.AddUserScore(new UserScore(userScorePair.Key, userScorePair.Value));
-            Debug.Log($"User {userScorePair.Key} total score {userScorePair.Value}");
+            string uid = userScorePair.Key;
+            yield return StartCoroutine(GetUserNameFromUid(uid));
+            scoreData.AddUserScore(new UserScore(current_username, userScorePair.Value));
         }
         ClearRows();
         DisplayRows();
+    }
+
+    private IEnumerator GetUserNameFromUid(string uid)
+    {
+        var getUsernameFromUid = FirestoreManager.instance.getUsernamebyID(uid,
+            res =>
+            {
+                current_username = res;
+            }
+        );
+        yield return new WaitUntil(predicate: () => getUsernameFromUid.IsCompleted);
     }
 
     private IEnumerator RetrieveUserScoreDataSingleLevel(string world, string level)
@@ -58,7 +70,6 @@ public class ScoreManager : MonoBehaviour
             res =>
             {
                 addUserAttemptsSelectedLevel(res);
-                Debug.Log($"Length of levels: {scoreSelectedLevels.Count}");
             });
         yield return new WaitUntil(predicate: () => getScoresForSelectedContent.IsCompleted);
     }
