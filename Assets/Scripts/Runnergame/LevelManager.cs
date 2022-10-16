@@ -1,28 +1,43 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Animations;
 using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.UI;
 
 public class LevelManager : MonoBehaviour
 {
-    public static LevelManager instance;
+    public static LevelManager m_Instance;
     public int numQns = 10;
     public float runnerDifficulty = 1;
     public QuestionManager.OpMode runnerOpMode = QuestionManager.OpMode.ADD;
     public string customQuestions;
     public string currentSeed;
+    public int charSelected = 0;
 
     public int addProgress = 0, subProgress = 0, mulProgress = 0, divProgress = 0;
     public string currentLevel = string.Empty;
     public string previousScene = "";
 
+    public List<AnimatorController> charUIAnimList;
+    public List<AnimatorController> charAnimList;
+
+    public static LevelManager Instance
+    {
+        get
+        {
+            if (m_Instance == null)
+                m_Instance = new GameObject("LevelManager").AddComponent<LevelManager>();
+            return m_Instance;
+        }
+    }
+
     private void Awake()
     {
-        if (!LevelManager.instance)
-            LevelManager.instance = this;
+        if (!LevelManager.m_Instance)
+            LevelManager.m_Instance = this;
 
-        if (LevelManager.instance != this)
+        if (LevelManager.Instance != this)
             Destroy(this.gameObject);
 
         DontDestroyOnLoad(this.gameObject);
