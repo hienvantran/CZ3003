@@ -42,8 +42,8 @@ public class PauseMenu : MonoBehaviour
     {
         Time.timeScale = 1;
         PlayerPrefs.Save();
-        if (LevelManager.instance.previousScene != "")
-            SceneManager.LoadScene(LevelManager.instance.previousScene);
+        if (LevelManager.Instance.previousScene != "")
+            SceneManager.LoadScene(LevelManager.Instance.previousScene);
         else
             SceneManager.LoadScene("MainMenu");
     }

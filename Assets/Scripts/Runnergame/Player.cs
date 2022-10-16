@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Animations;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -17,6 +18,9 @@ public class Player : MonoBehaviour
     float moveSpeed = 10f;
 
     Vector2 moveDir;
+
+    [SerializeField] List<AnimatorController> charList;
+    LevelManager lm;
 
     private void OnEnable()
     {
@@ -46,6 +50,8 @@ public class Player : MonoBehaviour
         sr = GetComponent<SpriteRenderer>();
 
         SetBounds();
+        lm = LevelManager.Instance;
+        SetCharacter();
         
     }
 
@@ -61,11 +67,16 @@ public class Player : MonoBehaviour
         rb.velocity = new Vector2(moveDir.x * moveSpeed, moveDir.y * moveSpeed);
     }
 
+    private void SetCharacter()
+    {
+        GetComponent<Animator>().runtimeAnimatorController = lm.charAnimList[lm.charSelected];
+    }
+
     private void GetMoveDir()
     {
         Vector2 pos = transform.position;
         moveDir = move.ReadValue<Vector2>();
-        if (pos.y <= (minY + sr.bounds.size.y/2) && moveDir.y < 0 || pos.y >= (maxY - topBound - sr.bounds.size.y / 2) && moveDir.y > 0)
+        if (pos.y <= (minY + btmBound +sr.bounds.size.y/2) && moveDir.y < 0 || pos.y >= (maxY - topBound - sr.bounds.size.y / 2) && moveDir.y > 0)
         {
             moveDir = new Vector2(moveDir.x, 0);
         }
@@ -77,7 +88,7 @@ public class Player : MonoBehaviour
 
     private void Fire(InputAction.CallbackContext ctx)
     {
-        Debug.Log("We Fired");
+        
     }
 
     private void SetBounds()
