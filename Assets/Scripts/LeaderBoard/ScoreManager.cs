@@ -54,7 +54,7 @@ public class ScoreManager : MonoBehaviour
 
     private IEnumerator GetUserNameFromUid(string uid)
     {
-        var getUsernameFromUid = FirestoreManager.instance.getUsernamebyID(uid,
+        var getUsernameFromUid = FirestoreManager.Instance.getUsernamebyID(uid,
             res =>
             {
                 current_username = res;
@@ -66,7 +66,7 @@ public class ScoreManager : MonoBehaviour
     private IEnumerator RetrieveUserScoreDataSingleLevel(string world, string level)
     {
         string levelId = WorldLevelParser.formatIdFromWorldLevel(world, level);
-        var getScoresForSelectedContent = FirestoreManager.instance.getLevelAttemptsbyID(levelId,
+        var getScoresForSelectedContent = FirestoreManager.Instance.getLevelAttemptsbyID(levelId,
             res =>
             {
                 addUserAttemptsSelectedLevel(res);

@@ -27,7 +27,7 @@ public class SelectionManager : MonoBehaviour
     // Get the list of worlds and levels
     public IEnumerator GetWorldLevelData()
     {
-        var getContentHierarchyTask = FirestoreManager.instance.getWorldsLevels(
+        var getContentHierarchyTask = FirestoreManager.Instance.getWorldsLevels(
             res =>
             {
                 worldsLevels = res;
