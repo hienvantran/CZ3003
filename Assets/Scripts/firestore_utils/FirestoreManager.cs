@@ -147,6 +147,31 @@ public class FirestoreManager : MonoBehaviour
         });
     }
 
+    //get assignment question string by assignment ID/Key
+    public Task getUsernamebyID(string uid, Action<string> result)
+    {
+        FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
+        DocumentReference users = db.Collection("users").Document(uid);
+        
+        return users.GetSnapshotAsync().ContinueWith((task) =>
+        {
+            var snapshot = task.Result;
+            string username = "";
+            if (snapshot.Exists)
+            {
+                User user = snapshot.ConvertTo<User>();
+                username = user.Name;
+                // Debug.Log(String.Format("This is username {0}", username));
+                result?.Invoke(username);
+            }
+            else
+            {
+                Debug.Log(String.Format("Document {0} does not exist!", snapshot.Id));
+            }
+            return;
+        });
+    }
+
     //update user world progress
     public void updateUserWorldProgress(FirebaseUser User, string field, int val)
     {
