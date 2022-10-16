@@ -6,6 +6,7 @@ using Firebase.Auth;
 using Firebase.Firestore;
 using Firebase.Extensions;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 
@@ -104,7 +105,7 @@ public class FirestoreManager : MonoBehaviour
         });
     }
 
-    //get assignment question string by assignment ID/Key
+    //get username by user id
     public Task getUsernamebyID(string uid, Action<string> result)
     {
         FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
@@ -126,6 +127,26 @@ public class FirestoreManager : MonoBehaviour
                 Debug.Log(String.Format("Document {0} does not exist!", snapshot.Id));
             }
             return;
+        });
+    }
+
+    // unique username
+    public Task isDuplicatedUsername(string username, Action<bool> result)
+    {
+        FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
+        CollectionReference users = db.Collection("users");
+        Query query = users.WhereEqualTo("Name", username);
+
+        return query.GetSnapshotAsync().ContinueWithOnMainThread((task) =>
+        {
+            bool isDuplicated = false;
+            QuerySnapshot snapshot = task.Result;
+            IEnumerable<DocumentSnapshot> documents = snapshot.Documents;
+
+            if (documents.ToList().Count !=0){
+                isDuplicated = true;
+            }
+            result?.Invoke(isDuplicated);
         });
     }
 
