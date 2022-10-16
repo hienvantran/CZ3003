@@ -17,9 +17,9 @@ public class CharacterSelect : MonoBehaviour
     void Start()
     {
         lm = LevelManager.Instance;
-        charAnim.runtimeAnimatorController = charList[lm.charSelected];
         curChar = lm.charSelected;
-        
+        SetChar();
+
     }
 
     // Update is called once per frame
@@ -31,19 +31,22 @@ public class CharacterSelect : MonoBehaviour
     public void NextChar()
     {
         curChar++;
-        if (curChar >= charList.Count)
+        if (curChar >= lm.charUIAnimList.Count)
             curChar = 0;
-        charAnim.runtimeAnimatorController = charList[curChar];
-        curCharText.SetText((curChar + 1).ToString());
-        lm.charSelected = curChar;
+        SetChar();
     }
 
     public void PrevChar()
     {
         curChar--;
         if (curChar < 0)
-            curChar = charList.Count - 1;
-        charAnim.runtimeAnimatorController = charList[curChar];
+            curChar = lm.charUIAnimList.Count - 1;
+        SetChar();
+    }
+
+    private void SetChar()
+    {
+        charAnim.runtimeAnimatorController = lm.charUIAnimList[curChar];
         curCharText.SetText((curChar + 1).ToString());
         lm.charSelected = curChar;
     }
