@@ -14,6 +14,7 @@ public class QuestionManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI comboText;
     [SerializeField] private List<GameObject> optionSpawnList;
     [SerializeField] private GameObject optionPrefab, endMenu;
+    [SerializeField] private ProgressBar progressBar;
 
     [Header("Game Settings")]
     [SerializeField] private OpMode opMode;
@@ -57,7 +58,7 @@ public class QuestionManager : MonoBehaviour
     {
         activeOptions = new List<GameObject>();
         audioSauce = GetComponent<AudioSource>();
-        lm = LevelManager.instance;
+        lm = LevelManager.Instance;
         
         StartLevel();
     }
@@ -84,6 +85,8 @@ public class QuestionManager : MonoBehaviour
         BGs = FindObjectsOfType<BGScroller>();
         foreach (BGScroller bg in BGs)
             bg.UpdateSpeed();
+
+        progressBar.InitializeBar(numQns);
 
         StartCoroutine(NextQuestion());
     }
@@ -229,7 +232,7 @@ public class QuestionManager : MonoBehaviour
             combo++;
             score += combo * 1;
             correctCount++;
-            if (combo > 2)
+            if (2 < combo && combo < 6)
                 curSpeed *= 1.2f;
             foreach (BGScroller bg in BGs)
                 bg.UpdateSpeed();
@@ -259,6 +262,7 @@ public class QuestionManager : MonoBehaviour
         StartCoroutine(NextQuestion());
 
         audioSauce.Play();
+        progressBar.NextQn();
     }
 
     /// <summary>
@@ -304,21 +308,21 @@ public class QuestionManager : MonoBehaviour
         bool needUpdateProgress = false;
         if (opMode != OpMode.CUS)
         {
-            int cLvl = (int)char.GetNumericValue(LevelManager.instance.currentLevel[1]);
+            int cLvl = (int)char.GetNumericValue(LevelManager.Instance.currentLevel[1]);
             int cProg = 0;
-            switch (LevelManager.instance.currentLevel[0])
+            switch (LevelManager.Instance.currentLevel[0])
             {
                 case 'A':
-                    cProg = LevelManager.instance.addProgress;
+                    cProg = LevelManager.Instance.addProgress;
                     break;
                 case 'S':
-                    cProg = LevelManager.instance.subProgress;
+                    cProg = LevelManager.Instance.subProgress;
                     break;
                 case 'M':
-                    cProg = LevelManager.instance.mulProgress;
+                    cProg = LevelManager.Instance.mulProgress;
                     break;
                 case 'D':
-                    cProg = LevelManager.instance.divProgress;
+                    cProg = LevelManager.Instance.divProgress;
                     break;
             }
 
@@ -338,7 +342,7 @@ public class QuestionManager : MonoBehaviour
         endMenu.SetActive(true);
 
         //update user progress in firestore
-        LevelManager.instance.UpdateUserProgress(score, needUpdateProgress, opMode == OpMode.CUS);
+        LevelManager.Instance.UpdateUserProgress(score, needUpdateProgress, opMode == OpMode.CUS);
     }
 
     //Get Game speed

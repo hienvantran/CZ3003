@@ -1,0 +1,16 @@
+{
+    "name": "FirebaseAuth",
+    "rootNamespace": "",
+    "references": [
+        "GUID:d574d8e9613532145be53e7f66ddecc1"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

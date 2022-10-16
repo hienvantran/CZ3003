@@ -100,13 +100,27 @@ public class FirestoreManager : MonoBehaviour
         }
     }
 
+    private static FirestoreManager m_Instance;
+
+    public static FirestoreManager Instance
+    {
+        get
+        {
+            if (m_Instance == null)
+            {
+                m_Instance = new GameObject("FirestoreManager").AddComponent<FirestoreManager>();
+            }
+            return m_Instance;
+        }
+    }
+
     //instance
     private void Awake()
     {
-        if (!FirestoreManager.instance)
-            FirestoreManager.instance = this;
+        if (!FirestoreManager.m_Instance)
+            FirestoreManager.m_Instance = this;
 
-        if (FirestoreManager.instance != this)
+        if (FirestoreManager.m_Instance != this)
             Destroy(this.gameObject);
 
         DontDestroyOnLoad(this.gameObject);
@@ -183,10 +197,9 @@ public class FirestoreManager : MonoBehaviour
     }
 
     //get user world progress
-    public Task getUserWorldProgress(FirebaseUser User, Action<Dictionary<string, int>> result)
+    public Task getUserWorldProgress(Action<Dictionary<string, int>> result)
     {
-        DocumentReference docRef = db.Collection("users").Document(User.UserId);
-
+        DocumentReference docRef = db.Collection("users").Document(FirebaseManager.Instance.User.UserId);
         return docRef.GetSnapshotAsync().ContinueWith((task) =>
         {
             var snapshot = task.Result;
@@ -203,6 +216,7 @@ public class FirestoreManager : MonoBehaviour
             else
             {
                 Debug.Log(String.Format("Document {0} does not exist!", snapshot.Id));
+                result?.Invoke(null);
             }
             return;
         });
@@ -242,6 +256,7 @@ public class FirestoreManager : MonoBehaviour
             }
             else
             {
+                result?.Invoke(null);
                 Debug.Log(String.Format("Document {0} does not exist!", snapshot.Id));
             }
             return;
@@ -373,14 +388,14 @@ public class FirestoreManager : MonoBehaviour
     }
 
     //get a specific user's attempt for a levelscore ID/Key
-    public Task getSpecificUserLevelAttempt(string levelId, string userId, Action<UserAttempts> result)
+    public Task getSpecificUserLevelAttempt(string levelId, Action<UserAttempts> result)
     {
-        DocumentReference userAttemptsRef = db.Collection("levelscore").Document(levelId).Collection("userattempts").Document(userId);
+        DocumentReference userAttemptsRef = db.Collection("levelscore").Document(levelId).Collection("userattempts").Document(FirebaseManager.Instance.User.UserId);
 
         return userAttemptsRef.GetSnapshotAsync().ContinueWith((task) =>
         {
             var snapshot = task.Result;
-            UserAttempts userAttempt = new UserAttempts();
+            UserAttempts userAttempt = null;
             if (snapshot.Exists)
             {
                 userAttempt = snapshot.ConvertTo<UserAttempts>();

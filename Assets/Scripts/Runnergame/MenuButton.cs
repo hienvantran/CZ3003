@@ -36,9 +36,9 @@ public class MenuButton : MonoBehaviour
     //Load normal
     public void LoadLevel()
     {
-        LevelManager.instance.SetParams(numQns, difficulty, opMode);
-        LevelManager.instance.SetLevel(levelString);
-        LevelManager.instance.previousScene = SceneManager.GetActiveScene().name;
+        LevelManager.Instance.SetParams(numQns, difficulty, opMode);
+        LevelManager.Instance.SetLevel(levelString);
+        LevelManager.Instance.previousScene = SceneManager.GetActiveScene().name;
         SceneManager.LoadScene("RunnerGame");
     }
 
@@ -54,18 +54,18 @@ public class MenuButton : MonoBehaviour
         string seed = seedInput.text;
 
         //get qstring by seed(assignment key)
-        var qnStrParamsTask = FirestoreManager.instance.getAssignmentQnsStrbyID(seed, res =>
+        var qnStrParamsTask = FirestoreManager.Instance.getAssignmentQnsStrbyID(seed, res =>
         {
             Debug.Log("qnStr is : " + res);
             (int, string) seedParams = SeedEncoder.DecodeSeed(res);
-            LevelManager.instance.SetParams(seedParams.Item1, 1, QuestionManager.OpMode.CUS, seedParams.Item2, seed);
+            LevelManager.Instance.SetParams(seedParams.Item1, 1, QuestionManager.OpMode.CUS, seedParams.Item2, seed);
         });
 
         //wait
         yield return new WaitUntil(predicate: () => qnStrParamsTask.IsCompleted);
 
         //set prev scene and launch runner game scene
-        LevelManager.instance.previousScene = SceneManager.GetActiveScene().name;
+        LevelManager.Instance.previousScene = SceneManager.GetActiveScene().name;
         SceneManager.LoadScene("RunnerGame");
     }
 
@@ -91,11 +91,11 @@ public class MenuButton : MonoBehaviour
         //Add
         if (opMode == QuestionManager.OpMode.ADD)
         {
-            if (this.gameObject.name.Equals("Level2Btn") && LevelManager.instance.addProgress >= 1)
+            if (this.gameObject.name.Equals("Level2Btn") && LevelManager.Instance.addProgress >= 1)
             {
                 GetComponent<Button>().interactable = true;
             }
-            else if (this.gameObject.name.Equals("Level3Btn") && LevelManager.instance.addProgress >= 2)
+            else if (this.gameObject.name.Equals("Level3Btn") && LevelManager.Instance.addProgress >= 2)
             {
                 GetComponent<Button>().interactable = true;
             }
@@ -103,11 +103,11 @@ public class MenuButton : MonoBehaviour
         //Sub
         else if (opMode == QuestionManager.OpMode.SUB)
         {
-            if (this.gameObject.name.Equals("Level2Btn") && LevelManager.instance.subProgress >= 1)
+            if (this.gameObject.name.Equals("Level2Btn") && LevelManager.Instance.subProgress >= 1)
             {
                 GetComponent<Button>().interactable = true;
             }
-            else if (this.gameObject.name.Equals("Level3Btn") && LevelManager.instance.subProgress >= 2)
+            else if (this.gameObject.name.Equals("Level3Btn") && LevelManager.Instance.subProgress >= 2)
             {
                 GetComponent<Button>().interactable = true;
             }
@@ -115,11 +115,11 @@ public class MenuButton : MonoBehaviour
         //Mul
         else if (opMode == QuestionManager.OpMode.MUL)
         {
-            if (this.gameObject.name.Equals("Level2Btn") && LevelManager.instance.mulProgress >= 1)
+            if (this.gameObject.name.Equals("Level2Btn") && LevelManager.Instance.mulProgress >= 1)
             {
                 GetComponent<Button>().interactable = true;
             }
-            else if (this.gameObject.name.Equals("Level3Btn") && LevelManager.instance.mulProgress >= 2)
+            else if (this.gameObject.name.Equals("Level3Btn") && LevelManager.Instance.mulProgress >= 2)
             {
                 GetComponent<Button>().interactable = true;
             }
@@ -127,11 +127,11 @@ public class MenuButton : MonoBehaviour
         //Div
         else if (opMode == QuestionManager.OpMode.DIV)
         {
-            if (this.gameObject.name.Equals("Level2Btn") && LevelManager.instance.divProgress >= 1)
+            if (this.gameObject.name.Equals("Level2Btn") && LevelManager.Instance.divProgress >= 1)
             {
                 GetComponent<Button>().interactable = true;
             }
-            else if (this.gameObject.name.Equals("Level3Btn") && LevelManager.instance.divProgress >= 2)
+            else if (this.gameObject.name.Equals("Level3Btn") && LevelManager.Instance.divProgress >= 2)
             {
                 GetComponent<Button>().interactable = true;
             }
