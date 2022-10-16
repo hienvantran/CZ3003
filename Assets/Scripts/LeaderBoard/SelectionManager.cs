@@ -19,7 +19,7 @@ public class SelectionManager : MonoBehaviour
 
     void Start()
     {
-        Dictionary<string, List<string>> worldsLevels = new Dictionary<string, List<string>>();
+        worldsLevels = new Dictionary<string, List<string>>();
         Debug.Log("Start trying to retrieve content hierarchy");
         StartCoroutine(GetWorldLevelData());
     }
@@ -91,5 +91,24 @@ public class SelectionManager : MonoBehaviour
     {
         int index = dropdown.value;
         return dropdown.options[index].text;
+    }
+
+    public List<(string, string)> getSelectedWorldsLevels()
+    {
+        string worldSelected = GetWorldSelected();
+        string levelSelected = GetLevelSelected();
+
+        List<(string, string)> selectedWorldsLevels = new List<(string, string)>();
+
+        foreach (KeyValuePair<string, List<string>> worldLevelsPair in worldsLevels)
+        {
+            if (worldSelected != defaultOptionAll && worldLevelsPair.Key != worldSelected) continue;
+            foreach (string level in worldLevelsPair.Value)
+            {
+                if (levelSelected != defaultOptionAll && level != levelSelected) continue;
+                selectedWorldsLevels.Add((worldLevelsPair.Key, level));
+            }
+        }
+        return selectedWorldsLevels;
     }
 }

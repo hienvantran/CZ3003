@@ -3,10 +3,12 @@ using System.Collections;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Threading.Tasks;
 
 public class ScoreManager : MonoBehaviour
 {
     private UserScoreData scoreData;
+    private Dictionary<string, int> scoreSelectedLevels;
     [SerializeField] private SelectionManager selectionManager;
     [SerializeField] private RowUi rowUi;
 
@@ -21,52 +23,56 @@ public class ScoreManager : MonoBehaviour
     void UpdateScoreDisplay()
     {
         Debug.Log("Selection changed. Update leaderboard table...");
-        RetrieveUserScoreData();
+        StartCoroutine(RetrieveUserScoreData());
+    }
+
+    // get user score data from database
+    public IEnumerator RetrieveUserScoreData()
+    {
+        List<(string, string)> selectedWorldsLevels = selectionManager.getSelectedWorldsLevels();
+        scoreData = new UserScoreData();
+
+        scoreSelectedLevels = new Dictionary<string, int>();
+
+        foreach ((string worldSelected, string levelSelected) in selectedWorldsLevels)
+        {
+            yield return StartCoroutine(RetrieveUserScoreDataSingleLevel(worldSelected, levelSelected));
+        }
+
+        Debug.Log("Done getting user scores from selected world and level");
+        Debug.Log($"Length of levels: {scoreSelectedLevels.Count}");
+
+        foreach (KeyValuePair<string, int> userScorePair in scoreSelectedLevels)
+        {
+            scoreData.AddUserScore(new UserScore(userScorePair.Key, userScorePair.Value));
+            Debug.Log($"User {userScorePair.Key} total score {userScorePair.Value}");
+        }
         ClearRows();
         DisplayRows();
     }
 
-    // get user score data from database
-    private void RetrieveUserScoreData()
+    private IEnumerator RetrieveUserScoreDataSingleLevel(string world, string level)
     {
-        string worldSelected = selectionManager.GetWorldSelected();
-        string levelSelected = selectionManager.GetLevelSelected();
+        string levelId = WorldLevelParser.formatIdFromWorldLevel(world, level);
+        var getScoresForSelectedContent = FirestoreManager.instance.getLevelAttemptsbyID(levelId,
+            res =>
+            {
+                addUserAttemptsSelectedLevel(res);
+                Debug.Log($"Length of levels: {scoreSelectedLevels.Count}");
+            });
+        yield return new WaitUntil(predicate: () => getScoresForSelectedContent.IsCompleted);
+    }
 
-        scoreData = new UserScoreData();
-
-        // retrieve user and total scores based on world, level
-        // currently add dummy values for testing
-        if (worldSelected == "Addition")
+    private void addUserAttemptsSelectedLevel(List<Dictionary<string, object>> attempts)
+    {
+        foreach (Dictionary<string, object> userAttempt in attempts)
         {
-            scoreData.AddUserScore(new UserScore("Aug Add", 8));
-            scoreData.AddUserScore(new UserScore("Mar Add", 3));
-            scoreData.AddUserScore(new UserScore("Jan Add", 1));
-            scoreData.AddUserScore(new UserScore("Feb Add", 2));
-            scoreData.AddUserScore(new UserScore("FebTwin Add", 2));
-            scoreData.AddUserScore(new UserScore("Apr Add", 4));
-            scoreData.AddUserScore(new UserScore("May Add", 5));
-            scoreData.AddUserScore(new UserScore("Jun Add", 6));
-            scoreData.AddUserScore(new UserScore("Jul Add", 7));
-            scoreData.AddUserScore(new UserScore("Sep Add", 9));
-            scoreData.AddUserScore(new UserScore("Oct Add", 10));
-            scoreData.AddUserScore(new UserScore("Dec Add", 12));
-            scoreData.AddUserScore(new UserScore("Nov Add", 11));
-        }
-        else
-        {
-            scoreData.AddUserScore(new UserScore("Aug Others", 8));
-            scoreData.AddUserScore(new UserScore("Mar Others", 3));
-            scoreData.AddUserScore(new UserScore("Jan Others", 1));
-            scoreData.AddUserScore(new UserScore("Feb Others", 2));
-            scoreData.AddUserScore(new UserScore("FebTwin Others", 2));
-            scoreData.AddUserScore(new UserScore("Apr Others", 4));
-            scoreData.AddUserScore(new UserScore("May Others", 5));
-            scoreData.AddUserScore(new UserScore("Jun Others", 6));
-            scoreData.AddUserScore(new UserScore("Jul Others", 7));
-            scoreData.AddUserScore(new UserScore("Sep Others", 9));
-            scoreData.AddUserScore(new UserScore("Oct Others", 10));
-            scoreData.AddUserScore(new UserScore("Dec Others", 12));
-            scoreData.AddUserScore(new UserScore("Nov Others", 11));
+            string uid = userAttempt["uid"].ToString();
+            if (!scoreSelectedLevels.ContainsKey(uid))
+            {
+                scoreSelectedLevels[uid] = 0;
+            }
+            scoreSelectedLevels[uid] += int.Parse(userAttempt["score"].ToString());
         }
     }
 
@@ -81,6 +87,7 @@ public class ScoreManager : MonoBehaviour
     private void DisplayRows()
     {
         var arrangedScores = scoreData.GetScoresDescendingOrder();
+        if (arrangedScores.Length == 0) return;
 
         int previous_score = arrangedScores[0].score;
         int previous_rank = 1;
