@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.Animations;
 using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.UI;
@@ -19,8 +18,8 @@ public class LevelManager : MonoBehaviour
     public string currentLevel = string.Empty;
     public string previousScene = "";
 
-    public List<AnimatorController> charUIAnimList;
-    public List<AnimatorController> charAnimList;
+    public List<RuntimeAnimatorController> charUIAnimList;
+    public List<RuntimeAnimatorController> charAnimList;
 
     public static LevelManager Instance
     {

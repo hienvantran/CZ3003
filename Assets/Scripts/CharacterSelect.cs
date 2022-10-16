@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.Animations;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -9,7 +8,6 @@ public class CharacterSelect : MonoBehaviour
 {
     private int curChar = 0;
 
-    [SerializeField] List<AnimatorController> charList;
     [SerializeField] Animator charAnim;
     [SerializeField] TextMeshProUGUI curCharText;
     LevelManager lm;

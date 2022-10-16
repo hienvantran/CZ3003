@@ -40,7 +40,5 @@ public class ProgressBar : MonoBehaviour
     {
         curQn += 1;
         slider.value = curQn / numQns;
-        Debug.Log("CurQn:" + curQn + "  NumQns:" + numQns);
-        Debug.Log("Slider Val: " + slider.value);
     }
 }

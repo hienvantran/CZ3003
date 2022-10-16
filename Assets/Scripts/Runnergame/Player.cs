@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.Animations;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -19,7 +18,6 @@ public class Player : MonoBehaviour
 
     Vector2 moveDir;
 
-    [SerializeField] List<AnimatorController> charList;
     LevelManager lm;
 
     private void OnEnable()
