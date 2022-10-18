@@ -56,6 +56,19 @@ public class UserAttempts
         public string score { get; set;}
 }
 
+[FirestoreData]
+public class LevelScoreUserAttempts 
+{
+        [FirestoreProperty]
+        public string score { get; set;}
+
+        [FirestoreProperty]
+        public string correct { get; set;}
+
+        [FirestoreProperty]
+        public string fail { get; set;}
+}
+
 public class FirestoreManager : MonoBehaviour
 {
     private static FirestoreManager m_Instance;
@@ -289,10 +302,12 @@ public class FirestoreManager : MonoBehaviour
             QuerySnapshot allAttemptsQuerySnapshot = task.Result;
             foreach (DocumentSnapshot attemptSnapshot in allAttemptsQuerySnapshot.Documents)
             {
-                UserAttempts attempt = attemptSnapshot.ConvertTo<UserAttempts>();
+                LevelScoreUserAttempts attempt = attemptSnapshot.ConvertTo<LevelScoreUserAttempts>();
                 Dictionary<string, object> userAttempt = new Dictionary<string, object>
                 {
                     { "score", attempt.score },
+                    { "correct", attempt.correct},
+                    { "fail", attempt.fail},
                     { "uid" , attemptSnapshot.Id}
                 };
                 userAttempts.Add(userAttempt);
@@ -306,13 +321,15 @@ public class FirestoreManager : MonoBehaviour
 
     //add a user attempt for a levelscore ID/Key
     //* add functions don't actually need the calllback action but good to have incase you want to notify when done or smth
-    public void addUserLevelAttempts (string levelId, string userId, string userScore, Action<Dictionary<string, object>> result) {
+    public void addUserLevelAttempts (string levelId, string userId, string userScore, string correct, string fail, Action<Dictionary<string, object>> result) {
         FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
         DocumentReference userAttemptsRef = db.Collection("levelscore").Document(levelId).Collection("userattempts").Document(userId);
 
         Dictionary<string, object> userAttempt = new Dictionary<string, object>
         {
-            { "score", userScore }
+            { "score", userScore },
+            { "correct", correct },
+            { "fail", fail}
         };
 
         userAttemptsRef.SetAsync(userAttempt).ContinueWithOnMainThread(task => {
@@ -321,7 +338,7 @@ public class FirestoreManager : MonoBehaviour
     }
 
     //get a specific user's attempt for a levelscore ID/Key
-    public Task getSpecificUserLevelAttempt(string levelId, Action<UserAttempts> result)
+    public Task getSpecificUserLevelAttempt(string levelId, Action<LevelScoreUserAttempts> result)
     {
         FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
         DocumentReference userAttemptsRef = db.Collection("levelscore").Document(levelId).Collection("userattempts").Document(FirebaseManager.Instance.User.UserId);
@@ -329,10 +346,10 @@ public class FirestoreManager : MonoBehaviour
         return userAttemptsRef.GetSnapshotAsync().ContinueWith((task) =>
         {
             var snapshot = task.Result;
-            UserAttempts userAttempt = null;
+            LevelScoreUserAttempts userAttempt = null;
             if (snapshot.Exists)
             {
-                userAttempt = snapshot.ConvertTo<UserAttempts>();
+                userAttempt = snapshot.ConvertTo<LevelScoreUserAttempts>();
             }
             else
             {
