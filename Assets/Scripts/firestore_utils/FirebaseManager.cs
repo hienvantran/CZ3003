@@ -251,6 +251,24 @@ public class FirebaseManager : MonoBehaviour
             yield break;
         }
 
+        bool isDuplicatedUsername = false;
+
+        var CheckDuplicatedUsernameTask = FirestoreManager.Instance.isDuplicatedUsername(_username, res =>
+        {
+            //successful registration, go back to login screen
+            if (res)
+            {
+                isDuplicatedUsername = res;
+            }
+        });
+        yield return new WaitUntil(predicate: () => CheckDuplicatedUsernameTask.IsCompleted);
+
+        if (isDuplicatedUsername)
+        {
+            ShowRegisterStatus("Username must be unique");
+            yield break;
+        }
+
         //Firebase create user with email & pass
         var RegisterTask = auth.CreateUserWithEmailAndPasswordAsync(_email, _password);
         //wait
@@ -276,6 +294,8 @@ public class FirebaseManager : MonoBehaviour
         if (ProfileTask.Exception != null)
         {
             HandleProfileTaskException(ProfileTask.Exception);
+            var DeleteUserTask = User.DeleteAsync();
+            yield return new WaitUntil(predicate: () => DeleteUserTask.IsCompleted);
             yield break;
         }
 
