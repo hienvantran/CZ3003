@@ -16,6 +16,7 @@ public class FirebaseManager : MonoBehaviour
     public DependencyStatus dependencyStatus;
     public FirebaseAuth auth;
     public FirebaseUser User;
+    private string currentRole;
 
     //Login variables
     [Header("Login")]
@@ -170,6 +171,7 @@ public class FirebaseManager : MonoBehaviour
         User = null;
         this.ClearFields();
         loginstate = LoginState.OUT;
+        currentRole = "";
         Destroy(this.gameObject);
         SceneManager.LoadScene("Login");
     }
@@ -217,6 +219,12 @@ public class FirebaseManager : MonoBehaviour
             Debug.LogFormat("User signed in successfully: {0} ({1})", User.DisplayName, User.Email);
             this.ClearFields();
             loginstate = LoginState.IN;
+            var GetUserRoleTask = FirestoreManager.Instance.getUserRolebyID(User.UserId,
+                res =>
+                {
+                    currentRole = res;
+                });
+            yield return new WaitUntil(predicate: () => GetUserRoleTask.IsCompleted);
             SceneManager.LoadScene("MainMenu");
             result?.Invoke("Login Success");
         }
@@ -296,6 +304,7 @@ public class FirebaseManager : MonoBehaviour
             HandleProfileTaskException(ProfileTask.Exception);
             var DeleteUserTask = User.DeleteAsync();
             yield return new WaitUntil(predicate: () => DeleteUserTask.IsCompleted);
+            User = null;
             yield break;
         }
 
@@ -366,5 +375,14 @@ public class FirebaseManager : MonoBehaviour
         FirebaseException firebaseEx = exception.GetBaseException() as FirebaseException;
         AuthError errorCode = (AuthError)firebaseEx.ErrorCode;
         ShowRegisterStatus("Username Set Failed!");
+    }
+
+    public bool isCurrentUserTeacher()
+    {
+        if (loginstate != LoginState.IN)
+        {
+            return false;
+        }
+        return (currentRole == "Teacher");
     }
 }
