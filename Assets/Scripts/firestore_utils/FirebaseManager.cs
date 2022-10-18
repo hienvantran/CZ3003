@@ -299,31 +299,18 @@ public class FirebaseManager : MonoBehaviour
             yield break;
         }
 
-        // check duplicated username
-        FirestoreManager.Instance.isDuplicatedUsername(User.DisplayName, res =>
+        //add firestore user data
+        var AddUserFirestoreTask = FirestoreManager.Instance.addUser(User, _role,
+        res =>
         {
             //successful registration, go back to login screen
-
-            if (res)
-            {
-                ShowRegisterStatus("Username must be unique");
-            }
-            else
-            {
-                //add firestore user data
-                FirestoreManager.Instance.addUser(User, _role, res =>
-                {
-                    //successful registration, go back to login screen
-                    Debug.LogFormat("User Registered: {0} ({1})", res["Name"], res["UID"]);
-                    ShowRegisterStatus("");
-                    statusLoginText.text = "Account Created";
-                    this.BackButton();
-                });
-            }
-
+            Debug.LogFormat("User Registered: {0} ({1})", res["Name"], res["UID"]);
+            ShowRegisterStatus("");
+            statusLoginText.text = "Account Created";
+            this.BackButton();
         });
 
-
+        yield return new WaitUntil(predicate: () => AddUserFirestoreTask.IsCompleted);
     }
 
     private void ShowRegisterStatus(string _status)

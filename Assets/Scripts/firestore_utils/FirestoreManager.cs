@@ -142,7 +142,7 @@ public class FirestoreManager : MonoBehaviour
 
     //add user details to firestore
     //* add functions don't actually need the calllback action but good to have incase you want to notify when done or smth
-    public void addUser(FirebaseUser User, string role, Action<Dictionary<string, object>> result)
+    public Task addUser(FirebaseUser User, string role, Action<Dictionary<string, object>> result)
     {
         DocumentReference users = db.Collection("users").Document(User.UserId);
 
@@ -168,7 +168,7 @@ public class FirestoreManager : MonoBehaviour
                 { "DivProgress", 0 }
 
         };
-        users.SetAsync(user).ContinueWithOnMainThread(task =>
+        return users.SetAsync(user).ContinueWithOnMainThread(task =>
         {
             Debug.Log("Added data of new user document in the users collection.");
             result?.Invoke(user);
