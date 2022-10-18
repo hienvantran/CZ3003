@@ -17,7 +17,9 @@ public class ScoreManager : MonoBehaviour
 
     void Start()
     {
+        scoreData = new UserScoreData();
         rowUiList = new List<RowUi>();
+        scoreSelectedLevels = new Dictionary<string, int>();
         selectionManager.SelectionChanged += UpdateScoreDisplay;
     }
 
@@ -31,9 +33,9 @@ public class ScoreManager : MonoBehaviour
     public IEnumerator RetrieveUserScoreData()
     {
         List<(string, string)> selectedWorldsLevels = selectionManager.getSelectedWorldsLevels();
-        scoreData = new UserScoreData();
+        scoreData.Clear();
+        scoreSelectedLevels.Clear();
 
-        scoreSelectedLevels = new Dictionary<string, int>();
 
         foreach ((string worldSelected, string levelSelected) in selectedWorldsLevels)
         {
@@ -81,7 +83,7 @@ public class ScoreManager : MonoBehaviour
             string uid = userAttempt["uid"].ToString();
             if (!scoreSelectedLevels.ContainsKey(uid))
             {
-                scoreSelectedLevels[uid] = 0;
+                scoreSelectedLevels.Add(uid, 0);
             }
             scoreSelectedLevels[uid] += int.Parse(userAttempt["score"].ToString());
         }

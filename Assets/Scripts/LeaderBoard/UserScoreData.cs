@@ -21,5 +21,10 @@ public class UserScoreData
     {
         return userScores.OrderByDescending(userScore => userScore.score).ToArray();
     }
+
+    public void Clear()
+    {
+        userScores.Clear();
+    }
 }
 
