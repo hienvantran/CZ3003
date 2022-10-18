@@ -296,6 +296,7 @@ public class FirebaseManager : MonoBehaviour
             HandleProfileTaskException(ProfileTask.Exception);
             var DeleteUserTask = User.DeleteAsync();
             yield return new WaitUntil(predicate: () => DeleteUserTask.IsCompleted);
+            User = null;
             yield break;
         }
 
