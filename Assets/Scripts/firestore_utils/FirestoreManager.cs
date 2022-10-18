@@ -199,6 +199,28 @@ public class FirestoreManager : MonoBehaviour
         });
     }
 
+    public Task getUserRolebyID(string uid, Action<string> result)
+    {
+        DocumentReference users = db.Collection("users").Document(uid);
+
+        return users.GetSnapshotAsync().ContinueWith((task) =>
+        {
+            var snapshot = task.Result;
+            string role = "";
+            if (snapshot.Exists)
+            {
+                User user = snapshot.ConvertTo<User>();
+                role = user.Role;
+                result?.Invoke(role);
+            }
+            else
+            {
+                Debug.Log(String.Format("Document {0} does not exist!", snapshot.Id));
+            }
+            return;
+        });
+    }
+
     // unique username
     public Task isDuplicatedUsername(string username, Action<bool> result)
     {
