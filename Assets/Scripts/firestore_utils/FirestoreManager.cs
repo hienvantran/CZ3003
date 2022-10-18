@@ -412,41 +412,23 @@ public class FirestoreManager : MonoBehaviour
 
     //add a user attempt for a levelscore ID/Key
     //* add functions don't actually need the calllback action but good to have incase you want to notify when done or smth
-    public void addUserLevelAttempts(string levelId, string userId, string userScore, Action<Dictionary<string, object>> result)
+    public void addUserLevelAttempts(string levelId, string userId, string userScore, string correct, string fail, Action<Dictionary<string, object>> result)
     {
         FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
         DocumentReference userAttemptsRef = db.Collection("levelscore").Document(levelId).Collection("userattempts").Document(userId);
 
         Dictionary<string, object> userAttempt = new Dictionary<string, object>
-        {
-            { "score", userScore }
-        };
+         {
+             { "score", userScore },
+             { "correct", correct },
+             { "fail", fail}
+         };
 
         userAttemptsRef.SetAsync(userAttempt).ContinueWithOnMainThread(task =>
         {
             result?.Invoke(userAttempt);
         });
     }
-
-    
-    // Replace the prev addUserLevelAttempts by this new function. As currently dont have correct and fail input param, will cause compilication err. 
-
-
-    // public void addUserLevelAttempts (string levelId, string userId, string userScore, string correct, string fail, Action<Dictionary<string, object>> result) {
-    //     FirebaseFirestore db = FirebaseFirestore.DefaultInstance;
-    //     DocumentReference userAttemptsRef = db.Collection("levelscore").Document(levelId).Collection("userattempts").Document(userId);
-
-    //     Dictionary<string, object> userAttempt = new Dictionary<string, object>
-    //     {
-    //         { "score", userScore },
-    //         { "correct", correct },
-    //         { "fail", fail}
-    //     };
-
-    //     userAttemptsRef.SetAsync(userAttempt).ContinueWithOnMainThread(task => {
-    //         result?.Invoke(userAttempt);
-    //     });
-    // }
 
 
     //get a specific user's attempt for a levelscore ID/Key

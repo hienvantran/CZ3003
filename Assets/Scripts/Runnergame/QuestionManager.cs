@@ -352,7 +352,7 @@ public class QuestionManager : MonoBehaviour
         endMenu.SetActive(true);
 
         //update user progress in firestore
-        LevelManager.Instance.UpdateUserProgress(score, correctCount, needUpdateProgress, opMode == OpMode.CUS);
+        LevelManager.Instance.UpdateUserProgress(score, correctCount, needUpdateProgress, needIncFail, opMode == OpMode.CUS);
     }
 
     //Get Game speed

@@ -103,6 +103,7 @@ public class LevelManager : MonoBehaviour
         
         int prevScore = 0;
         int prevCorrCount = 0;
+        int prevFail = 0;
 
         //then also push to firestore the completion records to LevelScore / Assignment collection
         if (isCus)
@@ -169,14 +170,24 @@ public class LevelManager : MonoBehaviour
             var checkExistTask = FirestoreManager.Instance.getSpecificUserLevelAttempt(lvlID, res =>
             {
                 prevScore = int.Parse(res.score);
+                prevCorrCount = int.Parse(res.correct);
+                prevFail = int.Parse(res.fail);
             });
 
             yield return new WaitUntil(predicate: () => checkExistTask.IsCompleted);
 
             //push firestore user level attempt
-            FirestoreManager.Instance.addUserLevelAttempts(lvlID, FirebaseManager.Instance.User.UserId, Mathf.Max(prevScore, score).ToString(), res =>
+            string pushScore = Mathf.Max(prevScore, score).ToString();
+            string pushCorrect = Mathf.Max(prevCorrCount, correctCount).ToString();
+            string pushFail = incFail ? (prevFail += 1).ToString() : prevFail.ToString();
+
+            FirestoreManager.Instance.addUserLevelAttempts(lvlID, FirebaseManager.Instance.User.UserId, pushScore, pushCorrect, pushFail, res =>
             {
-                Debug.Log("Pushed user(" + FirebaseManager.Instance.User.UserId + ") attempt for " + lvlID + ", score: " + Mathf.Max(prevScore, score));
+                Debug.Log("Pushed user(" + FirebaseManager.Instance.User.UserId + ") attempt for " + lvlID + 
+                    "\nscore: " + pushScore +
+                    "\ncorrect: " + pushCorrect +
+                    "\nfail: " + pushFail
+                );
             });
         }
     }
