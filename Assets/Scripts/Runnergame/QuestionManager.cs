@@ -306,6 +306,7 @@ public class QuestionManager : MonoBehaviour
 
         //only check unlock for non custom
         bool needUpdateProgress = false;
+        bool needIncFail = false;
         if (opMode != OpMode.CUS)
         {
             int cLvl = (int)char.GetNumericValue(LevelManager.Instance.currentLevel[1]);
@@ -326,15 +327,24 @@ public class QuestionManager : MonoBehaviour
                     break;
             }
 
-            //if half correct and if current progress is < current level
-            if ((correctCount >= numQns / 2f) && cProg < cLvl)
+            //if current progress is < current level (true: means that user is attempting a level they haven't "passed" before)
+            if (cProg < cLvl)
             {
-                //need to update progress in firestore
-                needUpdateProgress = true;
-                //then only if current level less than max level amount, we show the unlock text in end game screen
-                if (cLvl < 3)
+                //if half correct
+                if ((correctCount >= numQns / 2f))
                 {
-                    endText += "\nNext Level Unlocked!";
+                    //need to update progress in firestore
+                    needUpdateProgress = true;
+                    //then only if current level less than max level amount, we show the unlock text in end game screen
+                    if (cLvl < 3)
+                    {
+                        endText += "\nNext Level Unlocked!";
+                    }
+                }
+                //if did not meet passing requirement, fail counter needs to be incremented
+                else
+                {
+                    needIncFail = true;
                 }
             }
         }
@@ -342,7 +352,7 @@ public class QuestionManager : MonoBehaviour
         endMenu.SetActive(true);
 
         //update user progress in firestore
-        LevelManager.Instance.UpdateUserProgress(score, needUpdateProgress, opMode == OpMode.CUS);
+        LevelManager.Instance.UpdateUserProgress(score, correctCount, needUpdateProgress, opMode == OpMode.CUS);
     }
 
     //Get Game speed

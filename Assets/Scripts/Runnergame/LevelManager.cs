@@ -88,11 +88,11 @@ public class LevelManager : MonoBehaviour
     }
 
     //Updates the user's progress of the normal levels
-    public void UpdateUserProgress(int score, bool unlockNext, bool isCus)
+    public void UpdateUserProgress(int score, int correctCount, bool unlockNext, bool incFail, bool isCus)
     {
-        StartCoroutine(doUpdateUserProgress(score, unlockNext, isCus));
+        StartCoroutine(doUpdateUserProgress(score, correctCount, unlockNext, incFail, isCus));
     }
-    public IEnumerator doUpdateUserProgress(int score, bool unlockNext, bool isCus)
+    public IEnumerator doUpdateUserProgress(int score, int correctCount, bool unlockNext, bool incFail, bool isCus)
     {
         //check firebase auth confirm user login
         if (FirebaseManager.Instance.User == null)
@@ -102,6 +102,7 @@ public class LevelManager : MonoBehaviour
         }
         
         int prevScore = 0;
+        int prevCorrCount = 0;
 
         //then also push to firestore the completion records to LevelScore / Assignment collection
         if (isCus)
