@@ -12,6 +12,9 @@ public class MenuButton : MonoBehaviour
     public float difficulty;
     public QuestionManager.OpMode opMode;
     public string levelString;
+    public int level;
+    private GameObject tooltip;
+    private TextMeshProUGUI leveltext;
 
     [SerializeField] private TMP_InputField seedInput;
 
@@ -19,6 +22,30 @@ public class MenuButton : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        if (opMode != QuestionManager.OpMode.CUS)
+        {
+            leveltext = transform.Find("Text").GetComponent<TextMeshProUGUI>();
+            tooltip = transform.Find("Tooltip").gameObject;
+
+            leveltext.SetText(string.Format("Level {0}", level));
+            tooltip.GetComponent<TextMeshProUGUI>().SetText(string.Format("Complete Level {0} with at least half correct to unlock", level - 1));
+            difficulty = 1 + (level - 1) * 0.5f;
+            switch (opMode)
+            {
+                case QuestionManager.OpMode.ADD:
+                    levelString = "A" + level;
+                    break;
+                case QuestionManager.OpMode.SUB:
+                    levelString = "S" + level;
+                    break;
+                case QuestionManager.OpMode.MUL:
+                    levelString = "M" + level;
+                    break;
+                case QuestionManager.OpMode.DIV:
+                    levelString = "D" + level;
+                    break;
+            }
+        }
         CheckProgress();
     }
 
@@ -74,66 +101,55 @@ public class MenuButton : MonoBehaviour
     {
         if (!GetComponent<Button>().interactable)
         {
-            transform.Find("Tooltip").gameObject.SetActive(true);
+            tooltip.SetActive(true);
         }
     }
     public void MouseExit()
     {
         if (!GetComponent<Button>().interactable)
         {
-            transform.Find("Tooltip").gameObject.SetActive(false);
+            tooltip.SetActive(false);
         }
     }
 
     //check progress and set interactability
     private void CheckProgress()
     {
+
         //Add
         if (opMode == QuestionManager.OpMode.ADD)
         {
-            if (this.gameObject.name.Equals("Level2Btn") && LevelManager.Instance.addProgress >= 1)
+            if (LevelManager.Instance.addProgress >= level - 1)
             {
                 GetComponent<Button>().interactable = true;
-            }
-            else if (this.gameObject.name.Equals("Level3Btn") && LevelManager.Instance.addProgress >= 2)
-            {
-                GetComponent<Button>().interactable = true;
+                leveltext.color = Color.white;
             }
         }
         //Sub
         else if (opMode == QuestionManager.OpMode.SUB)
         {
-            if (this.gameObject.name.Equals("Level2Btn") && LevelManager.Instance.subProgress >= 1)
+            if (LevelManager.Instance.subProgress >= level - 1)
             {
                 GetComponent<Button>().interactable = true;
-            }
-            else if (this.gameObject.name.Equals("Level3Btn") && LevelManager.Instance.subProgress >= 2)
-            {
-                GetComponent<Button>().interactable = true;
+                leveltext.color = Color.white;
             }
         }
         //Mul
         else if (opMode == QuestionManager.OpMode.MUL)
         {
-            if (this.gameObject.name.Equals("Level2Btn") && LevelManager.Instance.mulProgress >= 1)
+            if (LevelManager.Instance.mulProgress >= level - 1)
             {
                 GetComponent<Button>().interactable = true;
-            }
-            else if (this.gameObject.name.Equals("Level3Btn") && LevelManager.Instance.mulProgress >= 2)
-            {
-                GetComponent<Button>().interactable = true;
+                leveltext.color = Color.white;
             }
         }
         //Div
         else if (opMode == QuestionManager.OpMode.DIV)
         {
-            if (this.gameObject.name.Equals("Level2Btn") && LevelManager.Instance.divProgress >= 1)
+            if (LevelManager.Instance.divProgress >= level - 1)
             {
                 GetComponent<Button>().interactable = true;
-            }
-            else if (this.gameObject.name.Equals("Level3Btn") && LevelManager.Instance.divProgress >= 2)
-            {
-                GetComponent<Button>().interactable = true;
+                leveltext.color = Color.white;
             }
         }
     }
