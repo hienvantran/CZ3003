@@ -447,7 +447,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   numQns: 10
   difficulty: 1.5
-  opMode: 0
+  opMode: 4
   levelString: 
   level: 0
   seedInput: {fileID: 1975095291}

@@ -22,29 +22,30 @@ public class MenuButton : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
-        leveltext = transform.Find("Text").GetComponent<TextMeshProUGUI>();
-        tooltip = transform.Find("Tooltip").gameObject;
-
-        leveltext.SetText(string.Format("Level {0}", level));
-        tooltip.GetComponent<TextMeshProUGUI>().SetText(string.Format("Complete Level {0} with at least half correct to unlock", level - 1));
-
-        switch (opMode)
+        if (opMode != QuestionManager.OpMode.CUS)
         {
-            case QuestionManager.OpMode.ADD:
-                levelString = "A" + level;
-                break;
-            case QuestionManager.OpMode.SUB:
-                levelString = "S" + level;
-                break;
-            case QuestionManager.OpMode.MUL:
-                levelString = "M" + level;
-                break;
-            case QuestionManager.OpMode.DIV:
-                levelString = "D" + level;
-                break;
-        }
+            leveltext = transform.Find("Text").GetComponent<TextMeshProUGUI>();
+            tooltip = transform.Find("Tooltip").gameObject;
 
+            leveltext.SetText(string.Format("Level {0}", level));
+            tooltip.GetComponent<TextMeshProUGUI>().SetText(string.Format("Complete Level {0} with at least half correct to unlock", level - 1));
+            difficulty = 1 + (level - 1) * 0.5f;
+            switch (opMode)
+            {
+                case QuestionManager.OpMode.ADD:
+                    levelString = "A" + level;
+                    break;
+                case QuestionManager.OpMode.SUB:
+                    levelString = "S" + level;
+                    break;
+                case QuestionManager.OpMode.MUL:
+                    levelString = "M" + level;
+                    break;
+                case QuestionManager.OpMode.DIV:
+                    levelString = "D" + level;
+                    break;
+            }
+        }
         CheckProgress();
     }
 
