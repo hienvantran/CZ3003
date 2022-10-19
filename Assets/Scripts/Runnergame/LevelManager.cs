@@ -50,6 +50,7 @@ public class LevelManager : MonoBehaviour
 
     }
 
+    //Sets the game parameters
     public void SetParams(int numQns, float difficulty, QuestionManager.OpMode opMode, string cusQuestions = "", string seed = "")
     {
         this.numQns = numQns;
@@ -72,6 +73,14 @@ public class LevelManager : MonoBehaviour
         if (FirebaseManager.Instance.User == null)
         {
             Debug.LogWarning("No user account detected, world progress fields will be set to zero");
+            yield break;
+        }
+
+        //if is teacher, give acccess to all levels
+        if (FirebaseManager.Instance.isCurrentUserTeacher())
+        {
+            addProgress = subProgress = mulProgress = divProgress = 3;
+            Debug.LogWarning("Teacher account, world progress fields will be set to max");
             yield break;
         }
 
@@ -101,6 +110,13 @@ public class LevelManager : MonoBehaviour
             yield break;
         }
         
+        //if teacher, skip
+        if (FirebaseManager.Instance.isCurrentUserTeacher())
+        {
+            Debug.LogWarning("Teacher account, skipping firestore update");
+            yield break;
+        }
+
         int prevScore = 0;
         int prevCorrCount = 0;
         int prevFail = 0;
