@@ -336,7 +336,7 @@ public class QuestionManager : MonoBehaviour
                     //need to update progress in firestore
                     needUpdateProgress = true;
                     //then only if current level less than max level amount, we show the unlock text in end game screen
-                    if (cLvl < 3)
+                    if (cLvl < 6)
                     {
                         endText += "\nNext Level Unlocked!";
                     }

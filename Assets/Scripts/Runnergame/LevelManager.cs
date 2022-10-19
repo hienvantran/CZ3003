@@ -79,7 +79,7 @@ public class LevelManager : MonoBehaviour
         //if is teacher, give acccess to all levels
         if (FirebaseManager.Instance.isCurrentUserTeacher())
         {
-            addProgress = subProgress = mulProgress = divProgress = 3;
+            addProgress = subProgress = mulProgress = divProgress = 6;
             Debug.LogWarning("Teacher account, world progress fields will be set to max");
             yield break;
         }
