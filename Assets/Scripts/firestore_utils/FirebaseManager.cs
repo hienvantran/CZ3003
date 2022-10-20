@@ -246,42 +246,43 @@ public class FirebaseManager : MonoBehaviour
 
         ShowRegisterStatus("");
 
+        //Disable access code input field if role is switched to Student
         if (!IsRoleTeacher(_role))
         {
             accessCode.gameObject.SetActive(false);
         }
 
+        //ensure username is filled
         if (IsEmpty(_username))
         {
-            //ensure username is filled
             ShowRegisterStatus("Username cannot be empty");
             yield break;
         }
 
+        //ensure email is filled
         if (IsEmpty(_email))
         {
-            //ensure email is filled
             ShowRegisterStatus("Email is missing");
             yield break;
         }
 
+        //ensure email is valid
         if (!IsValidEmail(_email))
         {
-            //ensure email is valid
             ShowRegisterStatus("Email is invalid");
             yield break;
         }
 
+        //ensure password is filled
         if (IsEmpty(_password))
         {
-            //ensure password is filled
             ShowRegisterStatus("Password is missing");
             yield break;
         }
 
+        //ensure password and confirm password match
         if (!IsPasswordSameAsConfirmedPassword(_password, _confirmed_password))
         {
-            //ensure password and confirm password match
             ShowRegisterStatus("Passwords Do Not Match");
             yield break;
         }
@@ -297,7 +298,6 @@ public class FirebaseManager : MonoBehaviour
             }
             else if (accessCode.text != access)
             {
-                // hardcode access code for teacher is 123456
                 // ensure access code is 123456
                 accessCode.gameObject.SetActive(IsRoleTeacher(_role));
                 ShowRegisterStatus("Access code is wrong");
@@ -379,6 +379,11 @@ public class FirebaseManager : MonoBehaviour
         return _str == "";
     }
 
+    /// <summary>
+    /// Checks if input is a valid email string.
+    /// </summary>
+    /// <param name="_email">Email string</param>
+    /// <returns></returns>
     private bool IsValidEmail(string _email)
     {
         return emailRegex.IsMatch(_email);
