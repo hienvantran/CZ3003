@@ -1,12 +1,12 @@
+using System;
+using System.Text.RegularExpressions;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Firebase;
 using Firebase.Auth;
-using Firebase.Extensions;
 using TMPro;
-using System;
+
 
 public class FirebaseManager : MonoBehaviour
 {
@@ -30,7 +30,8 @@ public class FirebaseManager : MonoBehaviour
     private GameObject registerGroup;
     private TMP_InputField nameRegisterField;
     private TMP_InputField emailRegisterField;
-    private TMP_InputField roleRegisterField;
+    [SerializeField] private TMP_Dropdown roleRegisterDropdown;
+    private TMP_InputField accessCode;
     private TMP_InputField passwordRegisterField;
     private TMP_InputField confirmPasswordRegisterField;
     private TMP_Text statusRegisterText;
@@ -39,6 +40,10 @@ public class FirebaseManager : MonoBehaviour
 
     //Test variables
     public bool instantiated = false;
+    public string access = "123456";
+
+    public Regex emailRegex = new Regex(@"^[a-zA-Z0-9]+@[a-z]+\.com");
+    
 
     public static FirebaseManager Instance
     {
@@ -110,7 +115,8 @@ public class FirebaseManager : MonoBehaviour
         registerGroup = GameObject.Find("RegisterGroup");
         nameRegisterField = registerGroup.transform.Find("Name").GetComponent<TMP_InputField>();
         emailRegisterField = registerGroup.transform.Find("Email").GetComponent<TMP_InputField>();
-        roleRegisterField = registerGroup.transform.Find("Role").GetComponent<TMP_InputField>();
+        roleRegisterDropdown = registerGroup.transform.Find("Role").GetComponent<TMP_Dropdown>();
+        accessCode = registerGroup.transform.Find("AccessCode").GetComponent<TMP_InputField>();
         passwordRegisterField = registerGroup.transform.Find("Password").GetComponent<TMP_InputField>();
         confirmPasswordRegisterField = registerGroup.transform.Find("Confirm Password").GetComponent<TMP_InputField>();
         statusRegisterText = registerGroup.transform.Find("Status").GetComponent<TMP_Text>();
@@ -134,7 +140,9 @@ public class FirebaseManager : MonoBehaviour
         statusLoginText.text = "";
         nameRegisterField.text = "";
         emailRegisterField.text = "";
-        roleRegisterField.text = "";
+        roleRegisterDropdown.value = 0;
+        accessCode.text = "";
+        accessCode.gameObject.SetActive(false);
         passwordRegisterField.text = "";
         confirmPasswordRegisterField.text = "";
         statusRegisterText.text = "";
@@ -168,7 +176,6 @@ public class FirebaseManager : MonoBehaviour
         Debug.LogFormat("User signed out successfully: {0} ({1})", User.DisplayName, User.Email);
         auth.SignOut();
         User = null;
-        this.ClearFields();
         loginstate = LoginState.OUT;
         currentRole = "";
         Destroy(this.gameObject);
@@ -234,29 +241,69 @@ public class FirebaseManager : MonoBehaviour
         string _email = emailRegisterField.text;
         string _password = passwordRegisterField.text;
         string _username = nameRegisterField.text;
-        string _role = roleRegisterField.text;
+        string _role = roleRegisterDropdown.options[roleRegisterDropdown.value].text;
         string _confirmed_password = confirmPasswordRegisterField.text;
 
-        if (IsUsernameEmpty(_username))
+        ShowRegisterStatus("");
+
+        //Disable access code input field if role is switched to Student
+        if (!IsRoleTeacher(_role))
         {
-            //ensure username is filled
+            accessCode.gameObject.SetActive(false);
+        }
+
+        //ensure username is filled
+        if (IsEmpty(_username))
+        {
             ShowRegisterStatus("Username cannot be empty");
             yield break;
         }
 
+        //ensure email is filled
+        if (IsEmpty(_email))
+        {
+            ShowRegisterStatus("Email is missing");
+            yield break;
+        }
+
+        //ensure email is valid
+        if (!IsValidEmail(_email))
+        {
+            ShowRegisterStatus("Email is invalid");
+            yield break;
+        }
+
+        //ensure password is filled
+        if (IsEmpty(_password))
+        {
+            ShowRegisterStatus("Password is missing");
+            yield break;
+        }
+
+        //ensure password and confirm password match
         if (!IsPasswordSameAsConfirmedPassword(_password, _confirmed_password))
         {
-            //ensure password and confirm password match
             ShowRegisterStatus("Passwords Do Not Match");
             yield break;
         }
 
-        if (!IsRoleAvailable(_role))
+        if (IsRoleTeacher(_role))
         {
-            //ensure password and confirm password match
-            ShowRegisterStatus("Role must be Student or Teacher");
-            yield break;
-        }
+            if (accessCode.text == "")
+            {
+                // ensure teacher account registration need access code
+                accessCode.gameObject.SetActive(IsRoleTeacher(_role));
+                ShowRegisterStatus("Teacher must provide access code");
+                yield break;
+            }
+            else if (accessCode.text != access)
+            {
+                // ensure access code is 123456
+                accessCode.gameObject.SetActive(IsRoleTeacher(_role));
+                ShowRegisterStatus("Access code is wrong");
+                yield break;
+            }
+        } 
 
         bool isDuplicatedUsername = false;
 
@@ -275,6 +322,7 @@ public class FirebaseManager : MonoBehaviour
             ShowRegisterStatus("Username must be unique");
             yield break;
         }
+        
 
         //Firebase create user with email & pass
         var RegisterTask = auth.CreateUserWithEmailAndPasswordAsync(_email, _password);
@@ -297,7 +345,7 @@ public class FirebaseManager : MonoBehaviour
         var ProfileTask = User.UpdateUserProfileAsync(profile);
         //Wait
         yield return new WaitUntil(predicate: () => ProfileTask.IsCompleted);
-
+        
         if (ProfileTask.Exception != null)
         {
             HandleProfileTaskException(ProfileTask.Exception);
@@ -326,9 +374,19 @@ public class FirebaseManager : MonoBehaviour
         statusRegisterText.text = _status;
     }
 
-    private bool IsUsernameEmpty(string _username)
+    private bool IsEmpty(string _str)
     {
-        return _username == "";
+        return _str == "";
+    }
+
+    /// <summary>
+    /// Checks if input is a valid email string.
+    /// </summary>
+    /// <param name="_email">Email string</param>
+    /// <returns></returns>
+    private bool IsValidEmail(string _email)
+    {
+        return emailRegex.IsMatch(_email);
     }
 
     private bool IsPasswordSameAsConfirmedPassword(string _password, string _confirmed_password)
@@ -336,10 +394,14 @@ public class FirebaseManager : MonoBehaviour
         return _password == _confirmed_password;
     }
 
-    private bool IsRoleAvailable(string _role)
+    private bool IsRoleTeacher(string _role)
     {
-        List<string> availableRoles = new List<string>() { "STUDENT", "TEACHER" };
-        return availableRoles.Contains(_role.ToUpper());
+        bool shown = false;
+        if (_role == "Teacher") {
+            shown = true;
+            Debug.LogFormat("This is show {0}", shown);
+        }
+        return shown;
     }
 
     private void HandleRegisterTaskException(AggregateException exception)
@@ -363,6 +425,9 @@ public class FirebaseManager : MonoBehaviour
                 break;
             case AuthError.EmailAlreadyInUse:
                 message = "Email Already In Use";
+                break;
+            case AuthError.InvalidEmail:
+                message = "Invalid email";
                 break;
         }
         ShowRegisterStatus(message);
