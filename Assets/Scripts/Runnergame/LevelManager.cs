@@ -41,7 +41,7 @@ public class LevelManager : MonoBehaviour
 
         DontDestroyOnLoad(this.gameObject);
 
-        StartCoroutine(GetUserProgress());
+        LevelManager.Instance.StartCoroutine(GetUserProgress());
     }
 
     // Start is called before the first frame update

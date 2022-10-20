@@ -25,6 +25,7 @@ public class MainMenu : MonoBehaviour
     public void Logout()
     {
         FirebaseManager.Instance.Logout();
+        Destroy(LevelManager.Instance.gameObject);
     }
 
     public void QuitGame()

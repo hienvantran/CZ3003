@@ -165,9 +165,8 @@ public class FirebaseManager : MonoBehaviour
     public void Logout()
     {
         //sign out Firebase auth
-        auth.SignOut();
-        //logged out
         Debug.LogFormat("User signed out successfully: {0} ({1})", User.DisplayName, User.Email);
+        auth.SignOut();
         User = null;
         this.ClearFields();
         loginstate = LoginState.OUT;
