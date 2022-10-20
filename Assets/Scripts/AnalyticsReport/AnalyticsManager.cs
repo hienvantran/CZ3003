@@ -156,8 +156,8 @@ public class AnalyticsManager : MonoBehaviour
             row.Display(
                 world, level,
                 summary.GetNumUniqueUsersAttempted().ToString(),
-                summary.GetAverageFails().ToString(),
-                summary.GetAverageCorrect().ToString()
+                summary.GetAverageFails().ToString("F2"),
+                summary.GetAverageCorrect().ToString("F2")
             );
         }
 
