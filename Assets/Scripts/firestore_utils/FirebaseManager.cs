@@ -30,7 +30,7 @@ public class FirebaseManager : MonoBehaviour
     private GameObject registerGroup;
     private TMP_InputField nameRegisterField;
     private TMP_InputField emailRegisterField;
-    private TMP_InputField roleRegisterField;
+    [SerializeField] private TMP_Dropdown roleRegisterDropdown;
     private TMP_InputField passwordRegisterField;
     private TMP_InputField confirmPasswordRegisterField;
     private TMP_Text statusRegisterText;
@@ -110,7 +110,7 @@ public class FirebaseManager : MonoBehaviour
         registerGroup = GameObject.Find("RegisterGroup");
         nameRegisterField = registerGroup.transform.Find("Name").GetComponent<TMP_InputField>();
         emailRegisterField = registerGroup.transform.Find("Email").GetComponent<TMP_InputField>();
-        roleRegisterField = registerGroup.transform.Find("Role").GetComponent<TMP_InputField>();
+        roleRegisterDropdown = registerGroup.transform.Find("Role").GetComponent<TMP_Dropdown>();
         passwordRegisterField = registerGroup.transform.Find("Password").GetComponent<TMP_InputField>();
         confirmPasswordRegisterField = registerGroup.transform.Find("Confirm Password").GetComponent<TMP_InputField>();
         statusRegisterText = registerGroup.transform.Find("Status").GetComponent<TMP_Text>();
@@ -134,7 +134,7 @@ public class FirebaseManager : MonoBehaviour
         statusLoginText.text = "";
         nameRegisterField.text = "";
         emailRegisterField.text = "";
-        roleRegisterField.text = "";
+        // roleRegisterDropdown.ClearOptions();
         passwordRegisterField.text = "";
         confirmPasswordRegisterField.text = "";
         statusRegisterText.text = "";
@@ -234,8 +234,9 @@ public class FirebaseManager : MonoBehaviour
         string _email = emailRegisterField.text;
         string _password = passwordRegisterField.text;
         string _username = nameRegisterField.text;
-        string _role = roleRegisterField.text;
+        string _role = roleRegisterDropdown.options[roleRegisterDropdown.value].text;
         string _confirmed_password = confirmPasswordRegisterField.text;
+
 
         if (IsUsernameEmpty(_username))
         {
@@ -341,6 +342,9 @@ public class FirebaseManager : MonoBehaviour
         List<string> availableRoles = new List<string>() { "STUDENT", "TEACHER" };
         return availableRoles.Contains(_role.ToUpper());
     }
+
+    //On change operator dropdown selection
+
 
     private void HandleRegisterTaskException(AggregateException exception)
     {
