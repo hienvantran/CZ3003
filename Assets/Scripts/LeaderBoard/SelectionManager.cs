@@ -17,6 +17,24 @@ public class SelectionManager : MonoBehaviour
     public delegate void OnSelectionChangedDelegate();
     public event OnSelectionChangedDelegate SelectionChanged;
 
+    Dictionary<string, string> keyToWorld = new Dictionary<string, string>()
+    {
+        {"add", "Addition"},
+        {"sub", "Subtraction"},
+        {"mul", "Multiplication"},
+        {"div", "Division"},
+        {"All", "All" },
+    };
+
+    Dictionary<string, string> worldToKey = new Dictionary<string, string>()
+    {
+        {"Addition", "add"},
+        {"Subtraction", "sub"},
+        {"Multiplication", "mul"},
+        {"Division", "div"},
+        {"All", "All" },
+    };
+
     void Start()
     {
         worldsLevels = new Dictionary<string, List<string>>();
@@ -44,7 +62,7 @@ public class SelectionManager : MonoBehaviour
     {
         ClearOptionsAndSetDefault(worldDropdown);
         Debug.Log("Updating world dropdown");
-        worldDropdown.AddOptions(worldsLevels.Keys.ToList());
+        worldDropdown.AddOptions(WorldKeyNaming(worldsLevels.Keys.ToList()));
     }
 
     void UpdateLevelOptions()
@@ -56,6 +74,14 @@ public class SelectionManager : MonoBehaviour
         {
             levelDropdown.AddOptions(worldsLevels[worldSelected]);
         }
+    }
+
+    private List<string> WorldKeyNaming(List<string> keys)
+    {
+        List<string> worlds = new List<string>();
+        foreach (string key in keys)
+            worlds.Add(keyToWorld[key]);
+        return worlds;
     }
 
     protected virtual void OnSelectionChanged() //protected virtual method
@@ -79,7 +105,7 @@ public class SelectionManager : MonoBehaviour
 
     public string GetWorldSelected()
     {
-        return GetDropdownItemSelectedText(worldDropdown);
+        return worldToKey[GetDropdownItemSelectedText(worldDropdown)];
     }
 
     public string GetLevelSelected()
