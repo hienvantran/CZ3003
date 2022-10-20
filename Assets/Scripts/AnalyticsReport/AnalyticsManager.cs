@@ -12,122 +12,153 @@ public class UserAttemptSummary
     public int numLevelsAttempted;
     public int sumCorrectAnswers;
     public int totalFailsBeforePassing;
+    public HashSet<string> uniqueUsersAttempted;
+
     public UserAttemptSummary()
     {
-        numLevelsAttempted = 0;
-        sumCorrectAnswers = 0;
-        totalFailsBeforePassing = 0;
+        this.numLevelsAttempted = 0;
+        this.sumCorrectAnswers = 0;
+        this.totalFailsBeforePassing = 0;
+        this.uniqueUsersAttempted = new HashSet<string>();
+    }
+
+    public bool IsAttempted()
+    {
+        return numLevelsAttempted > 0;
+    }
+
+    // Get average, note that need to check empty first
+    public float GetAverageFails()
+    {
+        return (float)totalFailsBeforePassing / numLevelsAttempted;
+    }
+
+    // Get average, note that need to check empty first
+    public float GetAverageCorrect()
+    {
+        return (float)sumCorrectAnswers / numLevelsAttempted;
+    }
+
+    public int GetNumUniqueUsersAttempted()
+    {
+        return uniqueUsersAttempted.Count;
+    }
+
+    public void AggregateAttempt(UserAttemptSummary anotherSummary)
+    {
+        this.numLevelsAttempted += anotherSummary.numLevelsAttempted;
+        this.sumCorrectAnswers += anotherSummary.sumCorrectAnswers;
+        this.totalFailsBeforePassing += anotherSummary.totalFailsBeforePassing;
+        this.uniqueUsersAttempted.UnionWith(anotherSummary.uniqueUsersAttempted);
     }
 }
 
 
 public class AnalyticsManager : MonoBehaviour
 {
-    private UserScoreData scoreData;
-    private Dictionary<string, UserAttemptSummary> attemptsSelectedLevels;
-    private string current_username;
-    [SerializeField] private SelectionManager selectionManager;
-    [SerializeField] private TextMeshProUGUI numUniqueUsers;
-    [SerializeField] private TextMeshProUGUI avgFailsBeforeFirstPass;
-    [SerializeField] private TextMeshProUGUI avgCorrectAnswersBestAttempt;
+    // map a tuple of (world, level) to attempt summary
+    private Dictionary<(string, string), UserAttemptSummary> allSummariesWorldLevel;
+    [SerializeField] private AnalyticsRowUi analyticsRowUi;
 
-    private List<RowUi> rowUiList;
+    // keep tracks of the list of levels each world contains
+    private Dictionary<string, List<string>> worldsLevels;
+
+    private string worldAll = "All";
+    private string levelAll = "All";
 
     void Start()
     {
-        rowUiList = new List<RowUi>();
-        selectionManager.SelectionChanged += UpdateScoreDisplay;
+        StartCoroutine(GetAnalyticsData());
     }
 
-    void UpdateScoreDisplay()
+    public IEnumerator GetAnalyticsData()
     {
-        Debug.Log("Selection changed. Update analytics report...");
-        StartCoroutine(RetrieveUserAttempts());
+        yield return StartCoroutine(GetWorldLevelData());
+        yield return StartCoroutine(RetrieveUserAttempts());
+        DisplayRows();
+    }
+
+    // Get the list of worlds and levels
+    public IEnumerator GetWorldLevelData()
+    {
+        var getContentHierarchyTask = FirestoreManager.Instance.getWorldsLevels(
+            res =>
+            {
+                worldsLevels = res;
+            }
+        );
+        yield return new WaitUntil(predicate: () => getContentHierarchyTask.IsCompleted);
     }
 
     // get user attempts data from database
     public IEnumerator RetrieveUserAttempts()
     {
-        List<(string, string)> selectedWorldsLevels = selectionManager.getSelectedWorldsLevels();
-        scoreData = new UserScoreData();
+        allSummariesWorldLevel = new Dictionary<(string, string), UserAttemptSummary>();
 
-        attemptsSelectedLevels = new Dictionary<string, UserAttemptSummary>();
-
-        foreach ((string worldSelected, string levelSelected) in selectedWorldsLevels)
+        UserAttemptSummary allWorldsAllLevelsAggAttempt = new UserAttemptSummary();
+        foreach (KeyValuePair<string, List<string>> levelsInWorld in worldsLevels)
         {
-            yield return StartCoroutine(RetrieveUserScoreDataSingleLevel(worldSelected, levelSelected));
-        }
+            string currentWorld = levelsInWorld.Key;
+            UserAttemptSummary currentWorldAllLevelsAggAttempt = new UserAttemptSummary();
 
-        Debug.Log("Done getting user scores from selected world and level");
-
-        int numUsers = attemptsSelectedLevels.Count();
-        int numLevelsAttemptedAllUsers = 0;
-        int sumCorrectAnswersAllUsers = 0;
-        int totalFailsBeforePassingAllUsers = 0;
-        foreach (KeyValuePair<string, UserAttemptSummary> userScorePair in attemptsSelectedLevels)
-        {
-            UserAttemptSummary summary = userScorePair.Value;
-
-            sumCorrectAnswersAllUsers += summary.sumCorrectAnswers;
-            numLevelsAttemptedAllUsers += summary.numLevelsAttempted;
-            totalFailsBeforePassingAllUsers += summary.totalFailsBeforePassing;
-        }
-        DisplayAnalytics(numUsers, sumCorrectAnswersAllUsers, totalFailsBeforePassingAllUsers, numLevelsAttemptedAllUsers);
-    }
-
-    private IEnumerator GetUserNameFromUid(string uid)
-    {
-        var getUsernameFromUid = FirestoreManager.Instance.getUsernamebyID(uid,
-            res =>
+            List<string> levels = levelsInWorld.Value;
+            foreach (string currentLevel in levels)
             {
-                current_username = res;
+                UserAttemptSummary currentWorldCurrentLevelAttempt = new UserAttemptSummary();
+                string levelId = WorldLevelParser.formatIdFromWorldLevel(currentWorld, currentLevel);
+                var getScoresForSelectedContent = FirestoreManager.Instance.getLevelAttemptsbyID(levelId,
+                    attempts =>
+                    {
+                        foreach (Dictionary<string, object> userAttempt in attempts)
+                        {
+                            string uid = userAttempt["uid"].ToString();
+                            currentWorldCurrentLevelAttempt.uniqueUsersAttempted.Add(uid);
+                            currentWorldCurrentLevelAttempt.numLevelsAttempted++;
+                            currentWorldCurrentLevelAttempt.sumCorrectAnswers += int.Parse(userAttempt["correct"].ToString());
+                            currentWorldCurrentLevelAttempt.totalFailsBeforePassing += int.Parse(userAttempt["fail"].ToString());
+                        }
+                    });
+                yield return new WaitUntil(predicate: () => getScoresForSelectedContent.IsCompleted);
+                allSummariesWorldLevel.Add((currentWorld, currentLevel), currentWorldCurrentLevelAttempt);
+                currentWorldAllLevelsAggAttempt.AggregateAttempt(currentWorldCurrentLevelAttempt);
             }
-        );
-        yield return new WaitUntil(predicate: () => getUsernameFromUid.IsCompleted);
+            allWorldsAllLevelsAggAttempt.AggregateAttempt(currentWorldAllLevelsAggAttempt);
+            allSummariesWorldLevel.Add((currentWorld, levelAll), currentWorldAllLevelsAggAttempt);
+        }
+        allSummariesWorldLevel.Add((worldAll, levelAll), allWorldsAllLevelsAggAttempt);
     }
 
-    private IEnumerator RetrieveUserScoreDataSingleLevel(string world, string level)
+    private void DisplayRows()
     {
-        string levelId = WorldLevelParser.formatIdFromWorldLevel(world, level);
-        var getScoresForSelectedContent = FirestoreManager.Instance.getLevelAttemptsbyID(levelId,
-            res =>
-            {
-                addUserAttemptsSelectedLevel(res);
-            });
-        yield return new WaitUntil(predicate: () => getScoresForSelectedContent.IsCompleted);
-    }
-
-    private void addUserAttemptsSelectedLevel(List<Dictionary<string, object>> attempts)
-    {
-        foreach (Dictionary<string, object> userAttempt in attempts)
+        AddRow(worldAll, levelAll);
+        foreach (KeyValuePair<string, List<string>> levelsInWorld in worldsLevels)
         {
-            string uid = userAttempt["uid"].ToString();
-            if (!attemptsSelectedLevels.ContainsKey(uid))
+            string currentWorld = levelsInWorld.Key;
+            List<string> levels = levelsInWorld.Value;
+            AddRow(currentWorld, levelAll);
+            foreach (string currentLevel in levels)
             {
-                attemptsSelectedLevels[uid] = new UserAttemptSummary();
+                AddRow(currentWorld, currentLevel);
             }
-            attemptsSelectedLevels[uid].numLevelsAttempted++;
-            attemptsSelectedLevels[uid].sumCorrectAnswers += int.Parse(userAttempt["correct"].ToString());
-            attemptsSelectedLevels[uid].totalFailsBeforePassing += int.Parse(userAttempt["fail"].ToString());
         }
     }
 
-    private void DisplayAnalytics(int numUsers, int sumCorrectAnswersAllUsers, int totalFailsBeforePassingAllUsers, int numLevelsAttemptedAllUsers)
+    private void AddRow(string world, string level)
     {
-        this.numUniqueUsers.SetText(numUsers.ToString());
-
-        if (numLevelsAttemptedAllUsers > 0)
+        UserAttemptSummary summary = allSummariesWorldLevel[(world, level)];
+        AnalyticsRowUi row = Instantiate(analyticsRowUi, transform).GetComponent<AnalyticsRowUi>();
+        if (!summary.IsAttempted())
         {
-            float avgCorrectAnswers = (float)sumCorrectAnswersAllUsers / numLevelsAttemptedAllUsers;
-            float avgFails = (float)totalFailsBeforePassingAllUsers / numLevelsAttemptedAllUsers;
-
-            this.avgFailsBeforeFirstPass.SetText(avgFails.ToString());
-            this.avgCorrectAnswersBestAttempt.SetText(avgCorrectAnswers.ToString());
+            row.Display(world, level, "0", "NA", "NA");
         }
         else
         {
-            this.avgFailsBeforeFirstPass.SetText("No data available");
-            this.avgCorrectAnswersBestAttempt.SetText("No data available");
+            row.Display(
+                world, level,
+                summary.GetNumUniqueUsersAttempted().ToString(),
+                summary.GetAverageFails().ToString(),
+                summary.GetAverageCorrect().ToString()
+            );
         }
 
     }
