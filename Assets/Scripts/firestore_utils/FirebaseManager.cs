@@ -31,6 +31,7 @@ public class FirebaseManager : MonoBehaviour
     private TMP_InputField nameRegisterField;
     private TMP_InputField emailRegisterField;
     [SerializeField] private TMP_Dropdown roleRegisterDropdown;
+    private TMP_InputField accessCode;
     private TMP_InputField passwordRegisterField;
     private TMP_InputField confirmPasswordRegisterField;
     private TMP_Text statusRegisterText;
@@ -39,6 +40,7 @@ public class FirebaseManager : MonoBehaviour
 
     //Test variables
     public bool instantiated = false;
+    
 
     public static FirebaseManager Instance
     {
@@ -111,6 +113,7 @@ public class FirebaseManager : MonoBehaviour
         nameRegisterField = registerGroup.transform.Find("Name").GetComponent<TMP_InputField>();
         emailRegisterField = registerGroup.transform.Find("Email").GetComponent<TMP_InputField>();
         roleRegisterDropdown = registerGroup.transform.Find("Role").GetComponent<TMP_Dropdown>();
+        accessCode = registerGroup.transform.Find("AccessCode").GetComponent<TMP_InputField>();
         passwordRegisterField = registerGroup.transform.Find("Password").GetComponent<TMP_InputField>();
         confirmPasswordRegisterField = registerGroup.transform.Find("Confirm Password").GetComponent<TMP_InputField>();
         statusRegisterText = registerGroup.transform.Find("Status").GetComponent<TMP_Text>();
@@ -134,7 +137,9 @@ public class FirebaseManager : MonoBehaviour
         statusLoginText.text = "";
         nameRegisterField.text = "";
         emailRegisterField.text = "";
-        // roleRegisterDropdown.ClearOptions();
+        roleRegisterDropdown.value = 0;
+        accessCode.text = "";
+        accessCode.gameObject.SetActive(false);
         passwordRegisterField.text = "";
         confirmPasswordRegisterField.text = "";
         statusRegisterText.text = "";
@@ -237,7 +242,6 @@ public class FirebaseManager : MonoBehaviour
         string _role = roleRegisterDropdown.options[roleRegisterDropdown.value].text;
         string _confirmed_password = confirmPasswordRegisterField.text;
 
-
         if (IsUsernameEmpty(_username))
         {
             //ensure username is filled
@@ -252,11 +256,22 @@ public class FirebaseManager : MonoBehaviour
             yield break;
         }
 
-        if (!IsRoleAvailable(_role))
+        if (IsRoleTeacher(_role) && accessCode.text == "" )
         {
-            //ensure password and confirm password match
-            ShowRegisterStatus("Role must be Student or Teacher");
+            // ensure teacher account registration need access code
+            accessCode.gameObject.SetActive(IsRoleTeacher(_role));
+            ShowRegisterStatus("Teacher must provide access code");
             yield break;
+        } else if (accessCode.text != "123456") {
+            // hardcode access code for teacher is 123456
+            // ensure access code is 123456
+            accessCode.gameObject.SetActive(IsRoleTeacher(_role));
+            ShowRegisterStatus("Access code is wrong");
+            yield break;
+        }
+
+        if (!IsRoleTeacher(_role)) {
+            accessCode.gameObject.SetActive(IsRoleTeacher(_role));
         }
 
         bool isDuplicatedUsername = false;
@@ -276,6 +291,7 @@ public class FirebaseManager : MonoBehaviour
             ShowRegisterStatus("Username must be unique");
             yield break;
         }
+        
 
         //Firebase create user with email & pass
         var RegisterTask = auth.CreateUserWithEmailAndPasswordAsync(_email, _password);
@@ -337,14 +353,15 @@ public class FirebaseManager : MonoBehaviour
         return _password == _confirmed_password;
     }
 
-    private bool IsRoleAvailable(string _role)
+    private bool IsRoleTeacher(string _role)
     {
-        List<string> availableRoles = new List<string>() { "STUDENT", "TEACHER" };
-        return availableRoles.Contains(_role.ToUpper());
+        bool shown = false;
+        if (_role == "Teacher") {
+            shown = true;
+            Debug.LogFormat("This is show {0}", shown);
+        }
+        return shown;
     }
-
-    //On change operator dropdown selection
-
 
     private void HandleRegisterTaskException(AggregateException exception)
     {
