@@ -12,14 +12,15 @@ public class UserAttemptSummary
     public int numLevelsAttempted;
     public int sumCorrectAnswers;
     public int totalFailsBeforePassing;
+    public HashSet<string> uniqueUsersAttempted;
 
-    public UserAttemptSummary(int numLevelsAttempted, int sumCorrectAnswers, int totalFailsBeforePassing)
+    public UserAttemptSummary()
     {
-        this.numLevelsAttempted = numLevelsAttempted;
-        this.sumCorrectAnswers = sumCorrectAnswers;
-        this.totalFailsBeforePassing = totalFailsBeforePassing;
+        this.numLevelsAttempted = 0;
+        this.sumCorrectAnswers = 0;
+        this.totalFailsBeforePassing = 0;
+        this.uniqueUsersAttempted = new HashSet<string>();
     }
-    public UserAttemptSummary() : this(0, 0, 0) { }
 
     public bool IsAttempted()
     {
@@ -38,11 +39,17 @@ public class UserAttemptSummary
         return (float)sumCorrectAnswers / numLevelsAttempted;
     }
 
+    public int GetNumUniqueUsersAttempted()
+    {
+        return uniqueUsersAttempted.Count;
+    }
+
     public void AggregateAttempt(UserAttemptSummary anotherSummary)
     {
         this.numLevelsAttempted += anotherSummary.numLevelsAttempted;
         this.sumCorrectAnswers += anotherSummary.sumCorrectAnswers;
         this.totalFailsBeforePassing += anotherSummary.totalFailsBeforePassing;
+        this.uniqueUsersAttempted.UnionWith(anotherSummary.uniqueUsersAttempted);
     }
 }
 
@@ -56,13 +63,11 @@ public class AnalyticsManager : MonoBehaviour
     // keep tracks of the list of levels each world contains
     private Dictionary<string, List<string>> worldsLevels;
 
-    private List<RowUi> rowUiList;
     private string worldAll = "All";
     private string levelAll = "All";
 
     void Start()
     {
-        rowUiList = new List<RowUi>();
         StartCoroutine(GetAnalyticsData());
     }
 
@@ -107,6 +112,7 @@ public class AnalyticsManager : MonoBehaviour
                         foreach (Dictionary<string, object> userAttempt in attempts)
                         {
                             string uid = userAttempt["uid"].ToString();
+                            currentWorldCurrentLevelAttempt.uniqueUsersAttempted.Add(uid);
                             currentWorldCurrentLevelAttempt.numLevelsAttempted++;
                             currentWorldCurrentLevelAttempt.sumCorrectAnswers += int.Parse(userAttempt["correct"].ToString());
                             currentWorldCurrentLevelAttempt.totalFailsBeforePassing += int.Parse(userAttempt["fail"].ToString());
@@ -147,7 +153,12 @@ public class AnalyticsManager : MonoBehaviour
         }
         else
         {
-            row.Display(world, level, "Test", summary.GetAverageFails().ToString(), summary.GetAverageCorrect().ToString());
+            row.Display(
+                world, level,
+                summary.GetNumUniqueUsersAttempted().ToString(),
+                summary.GetAverageFails().ToString(),
+                summary.GetAverageCorrect().ToString()
+            );
         }
 
     }
