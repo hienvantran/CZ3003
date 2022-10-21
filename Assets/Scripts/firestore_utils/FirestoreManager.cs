@@ -498,4 +498,34 @@ public class FirestoreManager : MonoBehaviour
             result?.Invoke(worldsLevels);
         });
     }
+
+    //==========For Telegram use================
+    //Save chat id
+    public void saveChatID(string chatid, Action<bool> result = null)
+    {
+        DocumentReference docRef = db.Collection("telechats").Document(chatid);
+        Dictionary<string, object> data = new Dictionary<string, object>{{ "id", chatid }};
+        docRef.SetAsync(data).ContinueWithOnMainThread(task =>
+        {
+            Debug.Log("Saved Telegram Chat ID: " + chatid);
+            result?.Invoke(true);
+        });
+    }
+
+    //Get all chat ids
+    public Task getChatIDs(Action<List<string>> result)
+    {
+        CollectionReference colRef = db.Collection("telechats");
+
+        return colRef.GetSnapshotAsync().ContinueWith((task) =>
+        {
+            List<string> chatIDs = new List<string>();
+            QuerySnapshot querySnapshot = task.Result;
+            foreach (DocumentSnapshot docSnapshot in querySnapshot.Documents)
+            {
+                chatIDs.Add(docSnapshot.Id);
+            }
+            result?.Invoke(chatIDs);
+        });
+    }
 }
