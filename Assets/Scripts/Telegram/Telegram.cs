@@ -25,15 +25,25 @@ public class Telegram : MonoBehaviour
     }
 
     public Button sendMessage;
+    public Button updateChats;
     public TextMeshProUGUI inputText;
     public string TOKEN = "00000:aaaaaa";
     Regex chatIdRegex = new Regex(@"chat.:{.id.:(-[0-9]+)");
+    List<string> chatIdList = new List<string>();
     // Start is called before the first frame update
     void Start()
     {
-        sendMessage.onClick.AddListener(() =>
+        sendMessage?.onClick.AddListener(() =>
         {
             StartCoroutine(SendMessage(inputText.text));
+        });
+        updateChats?.onClick.AddListener(() =>
+        {
+            StartCoroutine(UpdateChats());
+        });
+        Task t = FirestoreManager.Instance.getChatIDs(res =>
+        {
+            chatIdList = res;
         });
     }
 
@@ -45,6 +55,9 @@ public class Telegram : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Get telegram bot details
+    /// </summary>
     public void GetMe()
     {
         WWWForm form = new WWWForm();
@@ -52,6 +65,61 @@ public class Telegram : MonoBehaviour
         StartCoroutine(SendRequest(www));
     }
 
+    /// <summary>
+    /// Update list of telegram chat_id in Firebase
+    /// </summary>
+    /// <returns></returns>
+    public IEnumerator UpdateChats()
+    {
+        string chat_id = "";
+        List<string> updatedIds = new List<string>();
+        bool teleDone = false;
+
+        // Get ids of new chat groups
+        StartCoroutine(GetUpdates(res =>
+        {
+            var result = chatIdRegex.Matches(res);
+            if (result.Count > 0)
+            {
+                foreach (Match match in result)
+                {
+                    GroupCollection captures = match.Groups;
+                    chat_id = captures[1].Value;
+
+                    if (!updatedIds.Contains(chat_id))
+                    {
+                        Debug.Log(chat_id);
+                        updatedIds.Add(chat_id);
+                    }
+                }
+            }
+            teleDone = true;
+        }));
+
+        // Get stored list of ids in Firebase 
+        Task t = FirestoreManager.Instance.getChatIDs(res =>
+        {
+            chatIdList = res;
+        });
+
+        yield return new WaitUntil(() => t.IsCompleted && teleDone);
+
+        // Compare and save new ids in Firebase
+        foreach (string id in updatedIds)
+        {
+            if (!chatIdList.Contains(id))
+            {
+                chatIdList.Add(id);
+                FirestoreManager.Instance.saveChatID(id);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Telegram bot getUpdates API call
+    /// </summary>
+    /// <param name="callback"></param>
+    /// <returns></returns>
     IEnumerator GetUpdates(Action<string> callback = null)
     {
         WWWForm form = new WWWForm();
@@ -62,35 +130,30 @@ public class Telegram : MonoBehaviour
         }));
     }
 
+    /// <summary>
+    /// Sends a message to every chat group that the telegram bot is in
+    /// </summary>
+    /// <param name="text"></param>
+    /// <returns></returns>
     public new IEnumerator SendMessage(string text)
     {
-        string chat_id = "";
-        List<string> chat_ids = new List<string>();
-        yield return StartCoroutine(GetUpdates(res =>
+        yield return null;
+        foreach (string id in chatIdList)
         {
-            var result = chatIdRegex.Matches(res);
-            if (result.Count > 0)
-            {
-                foreach (Match match in result)
-                {
-                    GroupCollection captures = match.Groups;
-                    chat_id = captures[1].Value;
-                    
-                    if (!chat_ids.Contains(chat_id))
-                    {
-                        Debug.Log(chat_id);
-                        chat_ids.Add(chat_id);
-                        WWWForm form = new WWWForm();
-                        form.AddField("chat_id", chat_id);
-                        form.AddField("text", text);
-                        UnityWebRequest www = UnityWebRequest.Post(API_URL + "sendMessage?", form);
-                        StartCoroutine(SendRequest(www));
-                    }
-                }
-            }
-        }));
+            WWWForm form = new WWWForm();
+            form.AddField("chat_id", id);
+            form.AddField("text", text);
+            UnityWebRequest www = UnityWebRequest.Post(API_URL + "sendMessage?", form);
+            StartCoroutine(SendRequest(www));
+        }
     }
 
+    /// <summary>
+    /// Generic web request
+    /// </summary>
+    /// <param name="www"></param>
+    /// <param name="callback"></param>
+    /// <returns></returns>
     IEnumerator SendRequest(UnityWebRequest www, Action<string> callback = null)
     {
         yield return www.SendWebRequest();
