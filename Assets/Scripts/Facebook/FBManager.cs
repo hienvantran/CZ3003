@@ -112,11 +112,12 @@ public class FBManager : MonoBehaviour
 
     public void FBSharePost()
     {
-        FBGamingServices.UploadImageToMediaLibrary(
-                                "test Image",
-                                new Uri("C:/Users/Admin/Pictures/JohnCena.jpg"),
-                                true,
-                                HandleResult);
+        FB.ShareLink(new System.Uri("http://resocoder.com"), "Check it out!",
+            "Testing share",
+            new System.Uri("http://resocoder.com/wp-content/uploads/2017/01/logoRound512.png"));
+        //FB.FeedShare();
+        //FB.ShareLink();
+        
     }
 
     private void ShareCallback(IShareResult result)
