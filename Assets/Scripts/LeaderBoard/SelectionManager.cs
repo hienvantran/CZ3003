@@ -8,50 +8,53 @@ using TMPro;
 public class SelectionManager : MonoBehaviour
 {
     private string defaultOptionAll = "All";
+    public const string assignmentWorldKey = "assignments";
     [SerializeField] private TMP_Dropdown worldDropdown;
     [SerializeField] private TMP_Dropdown levelDropdown;
 
-    // keep tracks of the list of levels each world contains
+    // keep tracks of the list of levels each world or assignment contains
     private Dictionary<string, List<string>> worldsLevels;
 
     public delegate void OnSelectionChangedDelegate();
     public event OnSelectionChangedDelegate SelectionChanged;
 
-    Dictionary<string, string> keyToWorld = new Dictionary<string, string>()
+    // map world key to a UNIQUE value to display on the UI
+    private static Dictionary<string, string> keyToWorld = new Dictionary<string, string>()
     {
         {"add", "Addition"},
         {"sub", "Subtraction"},
         {"mul", "Multiplication"},
         {"div", "Division"},
         {"All", "All" },
+        {assignmentWorldKey, "Assignments"},
     };
 
-    Dictionary<string, string> worldToKey = new Dictionary<string, string>()
-    {
-        {"Addition", "add"},
-        {"Subtraction", "sub"},
-        {"Multiplication", "mul"},
-        {"Division", "div"},
-        {"All", "All" },
-    };
+    private static Dictionary<string, string> worldToKey = keyToWorld.ToDictionary(x => x.Value, x => x.Key);
 
     void Start()
     {
         worldsLevels = new Dictionary<string, List<string>>();
         Debug.Log("Start trying to retrieve content hierarchy");
-        StartCoroutine(GetWorldLevelData());
+        StartCoroutine(GetContentStructure());
     }
 
     // Get the list of worlds and levels
-    public IEnumerator GetWorldLevelData()
+    public IEnumerator GetContentStructure()
     {
-        var getContentHierarchyTask = FirestoreManager.Instance.GetWorldsLevels(
+        var getDefaultContentHierarchyTask = FirestoreManager.Instance.GetWorldsLevels(
             res =>
             {
                 worldsLevels = res;
             }
         );
-        yield return new WaitUntil(predicate: () => getContentHierarchyTask.IsCompleted);
+        yield return new WaitUntil(predicate: () => getDefaultContentHierarchyTask.IsCompleted);
+        var getAssignmentHierarchyTask = FirestoreManager.Instance.GetAssignments(
+            res =>
+            {
+                worldsLevels[assignmentWorldKey] = res;
+            }
+        );
+        yield return new WaitUntil(predicate: () => getAssignmentHierarchyTask.IsCompleted);
         Debug.Log("Update world and level dropdowns");
         UpdateWorldOptions();
         UpdateLevelOptions();

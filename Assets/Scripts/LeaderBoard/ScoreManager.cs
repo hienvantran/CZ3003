@@ -67,13 +67,26 @@ public class ScoreManager : MonoBehaviour
 
     private IEnumerator RetrieveUserScoreDataSingleLevel(string world, string level)
     {
-        string levelId = WorldLevelParser.formatIdFromWorldLevel(world, level);
-        var getScoresForSelectedContent = FirestoreManager.Instance.GetLevelAttemptsbyID(levelId,
-            res =>
-            {
-                addUserAttemptsSelectedLevel(res);
-            });
-        yield return new WaitUntil(predicate: () => getScoresForSelectedContent.IsCompleted);
+        if (world != SelectionManager.assignmentWorldKey)
+        {
+            string levelId = WorldLevelParser.formatIdFromWorldLevel(world, level);
+            var getScoresForSelectedContent = FirestoreManager.Instance.GetLevelAttemptsbyID(levelId,
+                res =>
+                {
+                    addUserAttemptsSelectedLevel(res);
+                });
+            yield return new WaitUntil(predicate: () => getScoresForSelectedContent.IsCompleted);
+        }
+        else
+        {
+            string assignId = level;
+            var getScoresForSelectedContent = FirestoreManager.Instance.GetAssignmentAttemptsbyID(assignId,
+                res =>
+                {
+                    addUserAttemptsSelectedLevel(res);
+                });
+            yield return new WaitUntil(predicate: () => getScoresForSelectedContent.IsCompleted);
+        }
     }
 
     private void addUserAttemptsSelectedLevel(List<Dictionary<string, object>> attempts)
