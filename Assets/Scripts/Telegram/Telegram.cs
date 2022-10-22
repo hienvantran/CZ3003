@@ -144,9 +144,26 @@ public class Telegram : MonoBehaviour
     /// <returns></returns>
     public IEnumerator SendMessage(string text, string msg = null)
     {
+        List<string> assignIds = new List<string>();
+        Task t = FirestoreManager.Instance.GetAssignments(result =>
+        {
+            assignIds = result;
+        });
+        yield return new WaitUntil(() => t.IsCompleted);
+
+
         if (string.IsNullOrEmpty(text))
         {
-            StartCoroutine(DisplayError());
+            StartCoroutine(DisplayError("Error - Missing level seed!"));
+            yield break;
+        }
+
+        if (!assignIds.Contains(text))
+        {
+            Debug.Log("Seed: " + text);
+            foreach (string seed in assignIds)
+                Debug.Log(seed);
+            StartCoroutine(DisplayError("Error - Invalid level seed!"));
             yield break;
         }
 
@@ -167,12 +184,16 @@ public class Telegram : MonoBehaviour
             UnityWebRequest www = UnityWebRequest.Post(API_URL + "sendMessage?", form);
             StartCoroutine(SendRequest(www));
         }
+
+        StartCoroutine(DisplayError("Shared!"));
     }
 
-    public IEnumerator DisplayError()
+    public IEnumerator DisplayError(string text = null)
     {
         if (errorText.activeSelf)
             yield break;
+        if (!string.IsNullOrEmpty(text))
+            errorText.GetComponent<TextMeshProUGUI>().SetText(text);
         errorText.SetActive(true);
         yield return new WaitForSeconds(3);
         errorText.SetActive(false);

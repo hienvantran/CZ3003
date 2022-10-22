@@ -295,6 +295,31 @@ public class FirestoreManager : MonoBehaviour
     }
 
     //get assignment question string by assignment ID/Key
+    public Task GetAssignments(Action<List<string>> result = null)
+    {
+        Query assignQuery = db.Collection("assignments");
+
+        return assignQuery.GetSnapshotAsync().ContinueWith((task) =>
+        {
+            var snapshot = task.Result;
+            IEnumerable<DocumentSnapshot> documents = snapshot.Documents;
+            List<string> assignIds = new List<string>();
+            foreach (DocumentSnapshot doc in documents)
+            {
+                //Debug.Log(doc.Id);
+                assignIds.Add(doc.Id);
+                /* Dictionary<string, object> assign = doc.ToDictionary();
+                 foreach (KeyValuePair<string, object> pair in assign)
+                 {
+                     Debug.Log(String.Format("{0}: {1}", pair.Key, pair.Value));
+                 }*/
+
+            }
+            result?.Invoke(assignIds);
+        });
+    }
+
+    //get assignment question string by assignment ID/Key
     public Task GetAssignmentQnsStrbyID(string assignID, Action<string> result)
     {
         DocumentReference assignRef = db.Collection("assignments").Document(assignID);
