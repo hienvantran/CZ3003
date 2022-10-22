@@ -7,41 +7,41 @@ using UnityEngine.Networking;
 using System.Text.RegularExpressions;
 using System.Linq;
 using System.Threading.Tasks;
+using Firebase.Auth;
 using UnityEngine.UI;
 using TMPro;
 
 public class Telegram : MonoBehaviour
 {
 
-    [System.Serializable]
-    public class View
-    {
-        [Header("Buttons")]
-        public Button sendMessage;
-
-        [Space(10)]
-        [Header("Text")]
-        public TextMeshProUGUI inputText;
-    }
-
     public Button sendMessage;
     public Button updateChats;
-    public TextMeshProUGUI inputText;
+    public Button cancelBtn;
+    public TMP_InputField seedText;
+    public TextMeshProUGUI msgText;
+    public GameObject errorText;
     public string TOKEN = "00000:aaaaaa";
     Regex chatIdRegex = new Regex(@"chat.:{.id.:(-[0-9]+)");
     List<string> chatIdList = new List<string>();
+
+    private bool isUpdating = false;
+
     // Start is called before the first frame update
     void Start()
     {
         sendMessage?.onClick.AddListener(() =>
         {
-            StartCoroutine(SendMessage(inputText.text));
+            StartCoroutine(SendMessage(seedText.text, msgText.text));
         });
         updateChats?.onClick.AddListener(() =>
         {
             StartCoroutine(UpdateChats());
         });
-        Task t = FirestoreManager.Instance.getChatIDs(res =>
+        cancelBtn?.onClick.AddListener(() =>
+        {
+            CancelBtn();
+        });
+        Task t = FirestoreManager.Instance.GetChatIDs(res =>
         {
             chatIdList = res;
         });
@@ -71,6 +71,11 @@ public class Telegram : MonoBehaviour
     /// <returns></returns>
     public IEnumerator UpdateChats()
     {
+        if (isUpdating)
+            yield break;
+        else
+            isUpdating = true;
+
         string chat_id = "";
         List<string> updatedIds = new List<string>();
         bool teleDone = false;
@@ -97,7 +102,7 @@ public class Telegram : MonoBehaviour
         }));
 
         // Get stored list of ids in Firebase 
-        Task t = FirestoreManager.Instance.getChatIDs(res =>
+        Task t = FirestoreManager.Instance.GetChatIDs(res =>
         {
             chatIdList = res;
         });
@@ -110,9 +115,10 @@ public class Telegram : MonoBehaviour
             if (!chatIdList.Contains(id))
             {
                 chatIdList.Add(id);
-                FirestoreManager.Instance.saveChatID(id);
+                FirestoreManager.Instance.SaveChatID(id);
             }
         }
+        isUpdating = false;
     }
 
     /// <summary>
@@ -122,6 +128,7 @@ public class Telegram : MonoBehaviour
     /// <returns></returns>
     IEnumerator GetUpdates(Action<string> callback = null)
     {
+        
         WWWForm form = new WWWForm();
         UnityWebRequest www = UnityWebRequest.Post(API_URL + "getUpdates", form);
         yield return StartCoroutine(SendRequest(www, res =>
@@ -135,17 +142,47 @@ public class Telegram : MonoBehaviour
     /// </summary>
     /// <param name="text"></param>
     /// <returns></returns>
-    public new IEnumerator SendMessage(string text)
+    public IEnumerator SendMessage(string text, string msg = null)
     {
+        if (string.IsNullOrEmpty(text))
+        {
+            StartCoroutine(DisplayError());
+            yield break;
+        }
+
         yield return null;
+        FirebaseUser user = FirebaseManager.Instance.User;
+        string message = string.Format(
+            "New {0} from {1}!\nLevel Code: {2}{3}",
+            FirebaseManager.Instance.IsCurrentUserTeacher() ? "Assignment" : "Challenge",
+            user.DisplayName,
+            text,
+            msg != null && msg != ""? ("\n" + msg) : "");
+
         foreach (string id in chatIdList)
         {
             WWWForm form = new WWWForm();
             form.AddField("chat_id", id);
-            form.AddField("text", text);
+            form.AddField("text", message);
             UnityWebRequest www = UnityWebRequest.Post(API_URL + "sendMessage?", form);
             StartCoroutine(SendRequest(www));
         }
+    }
+
+    public IEnumerator DisplayError()
+    {
+        if (errorText.activeSelf)
+            yield break;
+        errorText.SetActive(true);
+        yield return new WaitForSeconds(3);
+        errorText.SetActive(false);
+    }
+
+    public void CancelBtn()
+    {
+        seedText.text = "";
+        msgText.text = "";
+        errorText.SetActive(false);
     }
 
     /// <summary>
