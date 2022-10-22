@@ -5,7 +5,7 @@ public class TeacherOnly : MonoBehaviour
 {
     void Start()
     {
-        if (FirebaseManager.Instance.isCurrentUserTeacher())
+        if (FirebaseManager.Instance.IsCurrentUserTeacher())
         {
             gameObject.SetActive(true);
         }

@@ -19,7 +19,7 @@ public class NetworkTests
             "yoho@mail.com",
             "123456");
 
-        yield return fsm.getUserWorldProgress(res =>
+        yield return fsm.GetUserWorldProgress(res =>
         {
             Assert.IsNotNull(res);
         });
@@ -33,7 +33,7 @@ public class NetworkTests
         yield return new WaitUntil(() => fm.instantiated);
         FirestoreManager fsm = FirestoreManager.Instance;
 
-        yield return fsm.getAssignmentQnsStrbyID("2eybpX", res =>
+        yield return fsm.GetAssignmentQnsStrbyID("2eybpX", res =>
         {
             //Assert.AreEqual("08!2A2!1A3!1A2!1A3!1A3!3A1!2A2!1A3", res);
             Assert.IsNotNull(res);
@@ -48,7 +48,7 @@ public class NetworkTests
         yield return new WaitUntil(() => fm.instantiated);
         FirestoreManager fsm = FirestoreManager.Instance;
 
-        yield return fsm.getAssignmentAttemptsbyID("aBcDeF", res =>
+        yield return fsm.GetAssignmentAttemptsbyID("aBcDeF", res =>
         {
             Assert.IsNotEmpty(res);
         });
@@ -62,7 +62,7 @@ public class NetworkTests
         yield return new WaitUntil(() => fm.instantiated);
         FirestoreManager fsm = FirestoreManager.Instance;
 
-        yield return fsm.getAssignmentQnsStrbyID("emptycase", res =>
+        yield return fsm.GetAssignmentQnsStrbyID("emptycase", res =>
         {
             //Assert.AreEqual("08!2A2!1A3!1A2!1A3!1A3!3A1!2A2!1A3", res);
             Assert.IsNull(res);
@@ -77,7 +77,7 @@ public class NetworkTests
         yield return new WaitUntil(() => fm.instantiated);
         FirestoreManager fsm = FirestoreManager.Instance;
 
-        yield return fsm.getAssignmentAttemptsbyID("emptycase", res =>
+        yield return fsm.GetAssignmentAttemptsbyID("emptycase", res =>
         {
             Assert.IsEmpty(res);
         });
@@ -94,7 +94,7 @@ public class NetworkTests
             "yoho@mail.com",
             "123456");
 
-        yield return fsm.getSpecificUserLevelAttempt("add-1", res =>
+        yield return fsm.GetSpecificUserLevelAttempt("add-1", res =>
         {
             Assert.IsNotNull(res);
         });

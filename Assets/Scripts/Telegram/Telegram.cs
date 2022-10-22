@@ -7,33 +7,43 @@ using UnityEngine.Networking;
 using System.Text.RegularExpressions;
 using System.Linq;
 using System.Threading.Tasks;
+using Firebase.Auth;
 using UnityEngine.UI;
 using TMPro;
 
 public class Telegram : MonoBehaviour
 {
 
-    [System.Serializable]
-    public class View
-    {
-        [Header("Buttons")]
-        public Button sendMessage;
-
-        [Space(10)]
-        [Header("Text")]
-        public TextMeshProUGUI inputText;
-    }
-
     public Button sendMessage;
-    public TextMeshProUGUI inputText;
+    public Button updateChats;
+    public Button cancelBtn;
+    public TMP_InputField seedText;
+    public TextMeshProUGUI msgText;
+    public GameObject errorText;
     public string TOKEN = "00000:aaaaaa";
     Regex chatIdRegex = new Regex(@"chat.:{.id.:(-[0-9]+)");
+    List<string> chatIdList = new List<string>();
+
+    private bool isUpdating = false;
+
     // Start is called before the first frame update
     void Start()
     {
-        sendMessage.onClick.AddListener(() =>
+        sendMessage?.onClick.AddListener(() =>
         {
-            StartCoroutine(SendMessage(inputText.text));
+            StartCoroutine(SendMessage(seedText.text, msgText.text));
+        });
+        updateChats?.onClick.AddListener(() =>
+        {
+            StartCoroutine(UpdateChats());
+        });
+        cancelBtn?.onClick.AddListener(() =>
+        {
+            CancelBtn();
+        });
+        Task t = FirestoreManager.Instance.GetChatIDs(res =>
+        {
+            chatIdList = res;
         });
     }
 
@@ -45,6 +55,9 @@ public class Telegram : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Get telegram bot details
+    /// </summary>
     public void GetMe()
     {
         WWWForm form = new WWWForm();
@@ -52,21 +65,23 @@ public class Telegram : MonoBehaviour
         StartCoroutine(SendRequest(www));
     }
 
-    IEnumerator GetUpdates(Action<string> callback = null)
+    /// <summary>
+    /// Update list of telegram chat_id in Firebase
+    /// </summary>
+    /// <returns></returns>
+    public IEnumerator UpdateChats()
     {
-        WWWForm form = new WWWForm();
-        UnityWebRequest www = UnityWebRequest.Post(API_URL + "getUpdates", form);
-        yield return StartCoroutine(SendRequest(www, res =>
-        {
-            callback?.Invoke(res);
-        }));
-    }
+        if (isUpdating)
+            yield break;
+        else
+            isUpdating = true;
 
-    public new IEnumerator SendMessage(string text)
-    {
         string chat_id = "";
-        List<string> chat_ids = new List<string>();
-        yield return StartCoroutine(GetUpdates(res =>
+        List<string> updatedIds = new List<string>();
+        bool teleDone = false;
+
+        // Get ids of new chat groups
+        StartCoroutine(GetUpdates(res =>
         {
             var result = chatIdRegex.Matches(res);
             if (result.Count > 0)
@@ -75,22 +90,128 @@ public class Telegram : MonoBehaviour
                 {
                     GroupCollection captures = match.Groups;
                     chat_id = captures[1].Value;
-                    
-                    if (!chat_ids.Contains(chat_id))
+
+                    if (!updatedIds.Contains(chat_id))
                     {
                         Debug.Log(chat_id);
-                        chat_ids.Add(chat_id);
-                        WWWForm form = new WWWForm();
-                        form.AddField("chat_id", chat_id);
-                        form.AddField("text", text);
-                        UnityWebRequest www = UnityWebRequest.Post(API_URL + "sendMessage?", form);
-                        StartCoroutine(SendRequest(www));
+                        updatedIds.Add(chat_id);
                     }
                 }
             }
+            teleDone = true;
+        }));
+
+        // Get stored list of ids in Firebase 
+        Task t = FirestoreManager.Instance.GetChatIDs(res =>
+        {
+            chatIdList = res;
+        });
+
+        yield return new WaitUntil(() => t.IsCompleted && teleDone);
+
+        // Compare and save new ids in Firebase
+        foreach (string id in updatedIds)
+        {
+            if (!chatIdList.Contains(id))
+            {
+                chatIdList.Add(id);
+                FirestoreManager.Instance.SaveChatID(id);
+            }
+        }
+        isUpdating = false;
+    }
+
+    /// <summary>
+    /// Telegram bot getUpdates API call
+    /// </summary>
+    /// <param name="callback"></param>
+    /// <returns></returns>
+    IEnumerator GetUpdates(Action<string> callback = null)
+    {
+        
+        WWWForm form = new WWWForm();
+        UnityWebRequest www = UnityWebRequest.Post(API_URL + "getUpdates", form);
+        yield return StartCoroutine(SendRequest(www, res =>
+        {
+            callback?.Invoke(res);
         }));
     }
 
+    /// <summary>
+    /// Sends a message to every chat group that the telegram bot is in
+    /// </summary>
+    /// <param name="text"></param>
+    /// <returns></returns>
+    public IEnumerator SendMessage(string text, string msg = null)
+    {
+        List<string> assignIds = new List<string>();
+        Task t = FirestoreManager.Instance.GetAssignments(result =>
+        {
+            assignIds = result;
+        });
+        yield return new WaitUntil(() => t.IsCompleted);
+
+
+        if (string.IsNullOrEmpty(text))
+        {
+            StartCoroutine(DisplayError("Error - Missing level seed!"));
+            yield break;
+        }
+
+        if (!assignIds.Contains(text))
+        {
+            Debug.Log("Seed: " + text);
+            foreach (string seed in assignIds)
+                Debug.Log(seed);
+            StartCoroutine(DisplayError("Error - Invalid level seed!"));
+            yield break;
+        }
+
+        yield return null;
+        FirebaseUser user = FirebaseManager.Instance.User;
+        string message = string.Format(
+            "New {0} from {1}!\nLevel Code: {2}{3}",
+            FirebaseManager.Instance.IsCurrentUserTeacher() ? "Assignment" : "Challenge",
+            user.DisplayName,
+            text,
+            msg != null && msg != ""? ("\n" + msg) : "");
+
+        foreach (string id in chatIdList)
+        {
+            WWWForm form = new WWWForm();
+            form.AddField("chat_id", id);
+            form.AddField("text", message);
+            UnityWebRequest www = UnityWebRequest.Post(API_URL + "sendMessage?", form);
+            StartCoroutine(SendRequest(www));
+        }
+
+        StartCoroutine(DisplayError("Shared!"));
+    }
+
+    public IEnumerator DisplayError(string text = null)
+    {
+        if (errorText.activeSelf)
+            yield break;
+        if (!string.IsNullOrEmpty(text))
+            errorText.GetComponent<TextMeshProUGUI>().SetText(text);
+        errorText.SetActive(true);
+        yield return new WaitForSeconds(3);
+        errorText.SetActive(false);
+    }
+
+    public void CancelBtn()
+    {
+        seedText.text = "";
+        msgText.text = "";
+        errorText.SetActive(false);
+    }
+
+    /// <summary>
+    /// Generic web request
+    /// </summary>
+    /// <param name="www"></param>
+    /// <param name="callback"></param>
+    /// <returns></returns>
     IEnumerator SendRequest(UnityWebRequest www, Action<string> callback = null)
     {
         yield return www.SendWebRequest();

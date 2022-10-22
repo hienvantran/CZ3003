@@ -81,7 +81,7 @@ public class AnalyticsManager : MonoBehaviour
     // Get the list of worlds and levels
     public IEnumerator GetWorldLevelData()
     {
-        var getContentHierarchyTask = FirestoreManager.Instance.getWorldsLevels(
+        var getContentHierarchyTask = FirestoreManager.Instance.GetWorldsLevels(
             res =>
             {
                 worldsLevels = res;
@@ -106,7 +106,7 @@ public class AnalyticsManager : MonoBehaviour
             {
                 UserAttemptSummary currentWorldCurrentLevelAttempt = new UserAttemptSummary();
                 string levelId = WorldLevelParser.formatIdFromWorldLevel(currentWorld, currentLevel);
-                var getScoresForSelectedContent = FirestoreManager.Instance.getLevelAttemptsbyID(levelId,
+                var getScoresForSelectedContent = FirestoreManager.Instance.GetLevelAttemptsbyID(levelId,
                     attempts =>
                     {
                         foreach (Dictionary<string, object> userAttempt in attempts)

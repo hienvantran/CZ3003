@@ -41,4 +41,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/AnalyticsReport.unity
     guid: 1385d05d67664b44eabd455e8310baee
+  - enabled: 1
+    path: Assets/Scenes/TestTelegram.unity
+    guid: a5e4748fad7dce146983d815ba6f5bdd
   m_configObjects: {}

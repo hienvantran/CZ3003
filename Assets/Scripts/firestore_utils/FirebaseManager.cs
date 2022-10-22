@@ -16,7 +16,7 @@ public class FirebaseManager : MonoBehaviour
     public DependencyStatus dependencyStatus;
     public FirebaseAuth auth;
     public FirebaseUser User;
-    private string currentRole;
+    public string currentRole;
 
     //Login variables
     [Header("Login")]
@@ -225,15 +225,18 @@ public class FirebaseManager : MonoBehaviour
             Debug.LogFormat("User signed in successfully: {0} ({1})", User.DisplayName, User.Email);
             this.ClearFields();
             loginstate = LoginState.IN;
-            var GetUserRoleTask = FirestoreManager.Instance.getUserRolebyID(User.UserId,
+            var GetUserRoleTask = FirestoreManager.Instance.GetUserRolebyID(User.UserId,
                 res =>
                 {
+                    Debug.LogFormat("GetUserRoleTask done");
                     currentRole = res;
                 });
             yield return new WaitUntil(predicate: () => GetUserRoleTask.IsCompleted);
+            Debug.LogFormat("GetUserRoleTask done 2");
             SceneManager.LoadScene("MainMenu");
             result?.Invoke("Login Success");
         }
+        Debug.LogFormat("GetUserRoleTask done 3");
     }
 
     private IEnumerator Register()
@@ -307,7 +310,7 @@ public class FirebaseManager : MonoBehaviour
 
         bool isDuplicatedUsername = false;
 
-        var CheckDuplicatedUsernameTask = FirestoreManager.Instance.isDuplicatedUsername(_username, res =>
+        var CheckDuplicatedUsernameTask = FirestoreManager.Instance.IsDuplicatedUsername(_username, res =>
         {
             //successful registration, go back to login screen
             if (res)
@@ -356,7 +359,7 @@ public class FirebaseManager : MonoBehaviour
         }
 
         //add firestore user data
-        var AddUserFirestoreTask = FirestoreManager.Instance.addUser(User, _role,
+        var AddUserFirestoreTask = FirestoreManager.Instance.AddUser(User, _role,
         res =>
         {
             //successful registration, go back to login screen
@@ -399,7 +402,6 @@ public class FirebaseManager : MonoBehaviour
         bool shown = false;
         if (_role == "Teacher") {
             shown = true;
-            Debug.LogFormat("This is show {0}", shown);
         }
         return shown;
     }
@@ -441,7 +443,7 @@ public class FirebaseManager : MonoBehaviour
         ShowRegisterStatus("Username Set Failed!");
     }
 
-    public bool isCurrentUserTeacher()
+    public bool IsCurrentUserTeacher()
     {
         if (loginstate != LoginState.IN)
         {
