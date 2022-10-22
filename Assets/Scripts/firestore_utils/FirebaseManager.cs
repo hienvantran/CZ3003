@@ -36,6 +36,12 @@ public class FirebaseManager : MonoBehaviour
     private TMP_InputField confirmPasswordRegisterField;
     private TMP_Text statusRegisterText;
 
+    //Forgot variables
+    public GameObject forgotGroup;
+    public TMP_InputField emailForgotField;
+    public TMP_Text statusForgotText;
+
+
     private static FirebaseManager m_Instance;
 
     //Test variables
@@ -121,8 +127,15 @@ public class FirebaseManager : MonoBehaviour
         confirmPasswordRegisterField = registerGroup.transform.Find("Confirm Password").GetComponent<TMP_InputField>();
         statusRegisterText = registerGroup.transform.Find("Status").GetComponent<TMP_Text>();
 
+        //Forgot Group
+        forgotGroup = GameObject.Find("ForgotGroup");
+        emailForgotField = forgotGroup.transform.Find("ForgotEmail").GetComponent<TMP_InputField>();
+        statusForgotText = forgotGroup.transform.Find("Status").GetComponent<TMP_Text>();
+
         //set register group to inactive
         registerGroup.SetActive(false);
+        //set forgot group to inactive
+        forgotGroup.SetActive(false);
     }
 
     //Login Button
@@ -146,6 +159,8 @@ public class FirebaseManager : MonoBehaviour
         passwordRegisterField.text = "";
         confirmPasswordRegisterField.text = "";
         statusRegisterText.text = "";
+        emailForgotField.text = "";
+        statusForgotText.text = "";
     }
 
     //Register button (from login screen)
@@ -156,11 +171,20 @@ public class FirebaseManager : MonoBehaviour
         this.ClearFields();
     }
 
-    //Back button (from register screen)
+    //Forgot Pass button (from login screen)
+    public void ForgotButton()
+    {
+        loginGroup.SetActive(false);
+        forgotGroup.SetActive(true);
+        this.ClearFields();
+    }
+
+    //Back button (from register and forgot screens)
     public void BackButton()
     {
         loginGroup.SetActive(true);
         registerGroup.SetActive(false);
+        forgotGroup.SetActive(false);
         this.ClearFields();
     }
 
@@ -168,6 +192,12 @@ public class FirebaseManager : MonoBehaviour
     public void DoRegisterButton()
     {
         StartCoroutine(Register());
+    }
+
+    //Perform send forgot password email
+    public void DoForgotPassword()
+    {
+        StartCoroutine(ForgotPassword());
     }
 
     public void Logout()
@@ -370,6 +400,65 @@ public class FirebaseManager : MonoBehaviour
         });
 
         yield return new WaitUntil(predicate: () => AddUserFirestoreTask.IsCompleted);
+    }
+
+    //Send Forgot Password
+    private IEnumerator ForgotPassword()
+    {
+        string emailAddress = emailForgotField.text;
+
+        //validattion
+        //ensure email is filled
+        if (IsEmpty(emailAddress))
+        {
+            statusForgotText.text = "Email is missing";
+            yield break;
+        }
+
+        //ensure email is valid
+        if (!IsValidEmail(emailAddress))
+        {
+            statusForgotText.text = "Email is invalid";
+            yield break;
+        }
+
+        var ForgotTask = auth.SendPasswordResetEmailAsync(emailAddress);
+
+        yield return new WaitUntil(predicate: () => ForgotTask.IsCompleted);
+
+        if (ForgotTask.Exception != null)
+        {
+            Debug.LogError("SendPasswordResetEmailAsync encountered an error: " + ForgotTask.Exception);
+            HandleForgotTaskException(ForgotTask.Exception);
+            yield break;
+        }
+
+
+        statusForgotText.text = "Password reset email sent to " + emailAddress;
+    }
+
+    //handle forgot task exception
+    private void HandleForgotTaskException(AggregateException exception)
+    {
+        //handle errors
+        FirebaseException firebaseEx = exception.GetBaseException() as FirebaseException;
+        AuthError errorCode = (AuthError)firebaseEx.ErrorCode;
+        Debug.Log(errorCode.ToString());
+        switch (errorCode)
+        {
+            case AuthError.MissingEmail:
+                statusForgotText.text = "Missing Email";
+                break;
+            case AuthError.InvalidEmail:
+                statusForgotText.text = "Invalid email";
+                break;
+            case AuthError.UserNotFound:
+                statusForgotText.text = "Email is not registered";
+                break;
+            default:
+                statusForgotText.text = errorCode.ToString();
+                break;
+        }
     }
 
     private void ShowRegisterStatus(string _status)
