@@ -27,13 +27,7 @@ public class AudioManager : MonoBehaviour
 
     private void SetVolume()
     {
-        musicVol = PlayerPrefs.GetFloat("MusicVol");
-        if (musicVol == 0.001f)
-        {
-            musicVol = 0.8f;
-            PlayerPrefs.SetFloat("MusicVol", 0.8f);
-            PlayerPrefs.Save();
-        }
+        musicVol = PlayerPrefs.GetFloat("MusicVol", 0.5f);
         mixer.SetFloat("MusicVol", Mathf.Log10(musicVol) * 20);
     }
 
