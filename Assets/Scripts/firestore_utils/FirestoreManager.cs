@@ -294,7 +294,7 @@ public class FirestoreManager : MonoBehaviour
         });
     }
 
-    //get assignment question string by assignment ID/Key
+    //get list of assignment ids
     public Task GetAssignments(Action<List<string>> result = null)
     {
         Query assignQuery = db.Collection("assignments");
@@ -528,7 +528,7 @@ public class FirestoreManager : MonoBehaviour
     public void SaveChatID(string chatid, Action<bool> result = null)
     {
         DocumentReference docRef = db.Collection("telechats").Document(chatid);
-        Dictionary<string, object> data = new Dictionary<string, object>{{ "id", chatid }};
+        Dictionary<string, object> data = new Dictionary<string, object> { { "id", chatid } };
         docRef.SetAsync(data).ContinueWithOnMainThread(task =>
         {
             Debug.Log("Saved Telegram Chat ID: " + chatid);
