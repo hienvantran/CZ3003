@@ -51,6 +51,11 @@ public class UserAttemptSummary
         this.totalFailsBeforePassing += anotherSummary.totalFailsBeforePassing;
         this.uniqueUsersAttempted.UnionWith(anotherSummary.uniqueUsersAttempted);
     }
+
+    public void AddUser(string uid)
+    {
+        uniqueUsersAttempted.Add(uid);
+    }
 }
 
 
@@ -59,27 +64,56 @@ public class AnalyticsManager : MonoBehaviour
     // map a tuple of (world, level) to attempt summary
     private Dictionary<(string, string), UserAttemptSummary> allSummariesWorldLevel;
     [SerializeField] private AnalyticsRowUi analyticsRowUi;
+    private List<AnalyticsRowUi> rowUiList;
 
     // keep tracks of the list of levels each world contains
     private Dictionary<string, List<string>> worldsLevels;
 
     private string worldAll = "All";
     private string levelAll = "All";
-
-    void Start()
+    public enum ContentType
     {
+        DefaultContent,
+        AssignmentContent,
+    }
+    private ContentType? currentContentType;
+    public const string assignmentWorldKey = "assignments";
+
+    void Awake()
+    {
+        worldsLevels = new Dictionary<string, List<string>>();
+        rowUiList = new List<AnalyticsRowUi>();
+        currentContentType = null;
+    }
+
+    public void DisplayAnalyticsOnContent(ContentType contentType)
+    {
+        Debug.Log($"content type analytics = {contentType}");
+        if (currentContentType != null && currentContentType == contentType) return;
+        currentContentType = contentType;
+        Debug.Log($"current content type = {currentContentType}");
         StartCoroutine(GetAnalyticsData());
     }
 
     public IEnumerator GetAnalyticsData()
     {
-        yield return StartCoroutine(GetWorldLevelData());
-        yield return StartCoroutine(RetrieveUserAttempts());
+        worldsLevels.Clear();
+        if (currentContentType == ContentType.DefaultContent)
+        {
+            yield return StartCoroutine(GetContentStructureDefaultTask());
+            yield return StartCoroutine(RetrieveUserAttemptsDefaultContent());
+        }
+        else
+        {
+            yield return StartCoroutine(GetContentStructureAssignment());
+            yield return StartCoroutine(RetrieveUserAttemptsAssignmentContent());
+        }
+        ClearRows();
         DisplayRows();
     }
 
     // Get the list of worlds and levels
-    public IEnumerator GetWorldLevelData()
+    public IEnumerator GetContentStructureDefaultTask()
     {
         var getContentHierarchyTask = FirestoreManager.Instance.GetWorldsLevels(
             res =>
@@ -90,8 +124,20 @@ public class AnalyticsManager : MonoBehaviour
         yield return new WaitUntil(predicate: () => getContentHierarchyTask.IsCompleted);
     }
 
-    // get user attempts data from database
-    public IEnumerator RetrieveUserAttempts()
+    // Get the list of assignments
+    public IEnumerator GetContentStructureAssignment()
+    {
+        var getAssignmentHierarchyTask = FirestoreManager.Instance.GetAssignments(
+            res =>
+            {
+                worldsLevels.Add(assignmentWorldKey, res);
+            }
+        );
+        yield return new WaitUntil(predicate: () => getAssignmentHierarchyTask.IsCompleted);
+    }
+
+    // get user attempts on default content from database
+    public IEnumerator RetrieveUserAttemptsDefaultContent()
     {
         allSummariesWorldLevel = new Dictionary<(string, string), UserAttemptSummary>();
 
@@ -109,14 +155,7 @@ public class AnalyticsManager : MonoBehaviour
                 var getScoresForSelectedContent = FirestoreManager.Instance.GetLevelAttemptsbyID(levelId,
                     attempts =>
                     {
-                        foreach (Dictionary<string, object> userAttempt in attempts)
-                        {
-                            string uid = userAttempt["uid"].ToString();
-                            currentWorldCurrentLevelAttempt.uniqueUsersAttempted.Add(uid);
-                            currentWorldCurrentLevelAttempt.numLevelsAttempted++;
-                            currentWorldCurrentLevelAttempt.sumCorrectAnswers += int.Parse(userAttempt["correct"].ToString());
-                            currentWorldCurrentLevelAttempt.totalFailsBeforePassing += int.Parse(userAttempt["fail"].ToString());
-                        }
+                        addAttemptToSummary(attempts, currentWorldCurrentLevelAttempt);
                     });
                 yield return new WaitUntil(predicate: () => getScoresForSelectedContent.IsCompleted);
                 allSummariesWorldLevel.Add((currentWorld, currentLevel), currentWorldCurrentLevelAttempt);
@@ -128,9 +167,54 @@ public class AnalyticsManager : MonoBehaviour
         allSummariesWorldLevel.Add((worldAll, levelAll), allWorldsAllLevelsAggAttempt);
     }
 
+    // get user attempts on assignment content from database
+    public IEnumerator RetrieveUserAttemptsAssignmentContent()
+    {
+        allSummariesWorldLevel = new Dictionary<(string, string), UserAttemptSummary>();
+
+        string currentWorld = assignmentWorldKey;
+        List<string> levels = worldsLevels[currentWorld];
+        UserAttemptSummary currentWorldAllLevelsAggAttempt = new UserAttemptSummary();
+        foreach (string currentLevel in levels)
+        {
+            UserAttemptSummary currentWorldCurrentLevelAttempt = new UserAttemptSummary();
+            string assignId = currentLevel;
+            var getScoresForSelectedContent = FirestoreManager.Instance.GetAssignmentAttemptsbyID(assignId,
+                attempts =>
+                {
+                    addAttemptToSummary(attempts, currentWorldCurrentLevelAttempt);
+                });
+            yield return new WaitUntil(predicate: () => getScoresForSelectedContent.IsCompleted);
+            allSummariesWorldLevel.Add((currentWorld, currentLevel), currentWorldCurrentLevelAttempt);
+            currentWorldAllLevelsAggAttempt.AggregateAttempt(currentWorldCurrentLevelAttempt);
+        }
+        allSummariesWorldLevel.Add((currentWorld, levelAll), currentWorldAllLevelsAggAttempt);
+    }
+
+    private void addAttemptToSummary(List<Dictionary<string, object>> attempts, UserAttemptSummary summary)
+    {
+        foreach (Dictionary<string, object> userAttempt in attempts)
+        {
+            string uid = userAttempt["uid"].ToString();
+            summary.AddUser(uid);
+            summary.numLevelsAttempted++;
+            summary.sumCorrectAnswers += int.Parse(userAttempt["correct"].ToString());
+            summary.totalFailsBeforePassing += int.Parse(userAttempt["fail"].ToString());
+        }
+    }
+
+    private void ClearRows()
+    {
+        foreach (AnalyticsRowUi row in rowUiList)
+        {
+            Destroy(row.gameObject);
+        }
+        rowUiList.Clear();
+    }
+
     private void DisplayRows()
     {
-        AddRow(worldAll, levelAll);
+        if (currentContentType == ContentType.DefaultContent) AddRow(worldAll, levelAll);
         foreach (KeyValuePair<string, List<string>> levelsInWorld in worldsLevels)
         {
             string currentWorld = levelsInWorld.Key;
@@ -147,6 +231,7 @@ public class AnalyticsManager : MonoBehaviour
     {
         UserAttemptSummary summary = allSummariesWorldLevel[(world, level)];
         AnalyticsRowUi row = Instantiate(analyticsRowUi, transform).GetComponent<AnalyticsRowUi>();
+        rowUiList.Add(row);
         if (!summary.IsAttempted())
         {
             row.Display(world, level, "0", "NA", "NA");
@@ -160,6 +245,5 @@ public class AnalyticsManager : MonoBehaviour
                 summary.GetAverageCorrect().ToString("F2")
             );
         }
-
     }
 }

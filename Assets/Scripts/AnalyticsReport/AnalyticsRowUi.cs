@@ -18,6 +18,7 @@ public class AnalyticsRowUi : MonoBehaviour
         {"mul", "Multiplication"},
         {"div", "Division"},
         {"All", "All" },
+        {"assignments", "Assignments"},
     };
 
     public void Display(string world, string level, string numStudents, string avgFailsPerLevel, string avgCorrectPerLevel)
