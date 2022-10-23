@@ -55,13 +55,6 @@ public class UserAttempts
 {
     [FirestoreProperty]
     public string score { get; set; }
-}
-
-[FirestoreData]
-public class LevelScoreUserAttempts
-{
-    [FirestoreProperty]
-    public string score { get; set; }
 
     [FirestoreProperty]
     public string correct { get; set; }
@@ -69,6 +62,7 @@ public class LevelScoreUserAttempts
     [FirestoreProperty]
     public string fail { get; set; }
 }
+
 
 public class WorldLevel
 
@@ -357,6 +351,8 @@ public class FirestoreManager : MonoBehaviour
                 Dictionary<string, object> userAttempt = new Dictionary<string, object>
                 {
                     { "score", attempt.score },
+                    { "correct", attempt.correct },
+                    { "fail", attempt.fail },
                     { "uid" , attemptSnapshot.Id}
                 };
                 userAttempts.Add(userAttempt);
@@ -370,14 +366,17 @@ public class FirestoreManager : MonoBehaviour
 
     //add a user attempt for an assignment ID/Key
     //* add functions don't actually need the calllback action but good to have incase you want to notify when done or smth
-    public void AddUserAssignmentAttempts(string assignmentId, string userId, string userScore, Action<Dictionary<string, object>> result)
+
+    public void AddUserAssignmentAttempts(string assignmentId, string userId, string userScore, string correct, string fail, Action<Dictionary<string, object>> result)
     {
         DocumentReference assignRef = db.Collection("assignments").Document(assignmentId);
         DocumentReference userAttemptsRef = assignRef.Collection("userattempts").Document(userId);
-
+        
         Dictionary<string, object> userAttempt = new Dictionary<string, object>
         {
-            { "score", userScore }
+            { "score", userScore },
+            { "correct", correct },
+            { "fail", fail},
         };
         userAttemptsRef.SetAsync(userAttempt).ContinueWithOnMainThread(task =>
         {
@@ -387,10 +386,10 @@ public class FirestoreManager : MonoBehaviour
     }
 
     //get a specific user's attempt for an assignment ID/Key
+
     public Task GetSpecificUserAssignmentAttempt(string assignmentId, string userId, Action<UserAttempts> result)
     {
-        DocumentReference assignRef = db.Collection("assignments").Document(assignmentId);
-        DocumentReference userAttemptsRef = assignRef.Collection("userattempts").Document(userId);
+        DocumentReference userAttemptsRef = db.Collection("assignments").Document(assignmentId).Collection("userattempts").Document(userId);
 
         return userAttemptsRef.GetSnapshotAsync().ContinueWith((task) =>
         {
@@ -399,7 +398,6 @@ public class FirestoreManager : MonoBehaviour
             if (snapshot.Exists)
             {
                 userAttempt = snapshot.ConvertTo<UserAttempts>();
-                Debug.Log(String.Format("UID {0} and score {1}:", userId, userAttempt.score));
             }
             else
             {
@@ -434,7 +432,7 @@ public class FirestoreManager : MonoBehaviour
             QuerySnapshot allAttemptsQuerySnapshot = task.Result;
             foreach (DocumentSnapshot attemptSnapshot in allAttemptsQuerySnapshot.Documents)
             {
-                LevelScoreUserAttempts attempt = attemptSnapshot.ConvertTo<LevelScoreUserAttempts>();
+                UserAttempts attempt = attemptSnapshot.ConvertTo<UserAttempts>();
                 Dictionary<string, object> userAttempt = new Dictionary<string, object>
                 {
                     { "score", attempt.score },
@@ -473,17 +471,17 @@ public class FirestoreManager : MonoBehaviour
 
 
     //get a specific user's attempt for a levelscore ID/Key
-    public Task GetSpecificUserLevelAttempt(string levelId, Action<LevelScoreUserAttempts> result)
+    public Task GetSpecificUserLevelAttempt(string levelId, Action<UserAttempts> result)
     {
         DocumentReference userAttemptsRef = db.Collection("levelscore").Document(levelId).Collection("userattempts").Document(FirebaseManager.Instance.User.UserId);
 
         return userAttemptsRef.GetSnapshotAsync().ContinueWith((task) =>
         {
             var snapshot = task.Result;
-            LevelScoreUserAttempts userAttempt = null;
+            UserAttempts userAttempt = null;
             if (snapshot.Exists)
             {
-                userAttempt = snapshot.ConvertTo<LevelScoreUserAttempts>();
+                userAttempt = snapshot.ConvertTo<UserAttempts>();
             }
             else
             {
