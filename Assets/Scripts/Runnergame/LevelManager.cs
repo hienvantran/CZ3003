@@ -144,7 +144,11 @@ public class LevelManager : MonoBehaviour
             //add user attempt for assignment
             FirestoreManager.Instance.AddUserAssignmentAttempts(currentSeed, FirebaseManager.Instance.User.UserId, pushScore,  pushCorrect, pushFail, res =>
             {
-                Debug.Log("Pushed user(" + FirebaseManager.Instance.User.UserId + ") attempt for " + currentSeed + ", score: " + Mathf.Max(prevScore, score));
+                Debug.Log("Pushed user(" + FirebaseManager.Instance.User.UserId + ") attempt for " + currentSeed +
+                    "\nscore: " + pushScore +
+                    "\ncorrect: " + pushCorrect +
+                    "\nfail: " + pushFail
+                );
             });
         }
         else

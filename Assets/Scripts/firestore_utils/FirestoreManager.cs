@@ -351,6 +351,8 @@ public class FirestoreManager : MonoBehaviour
                 Dictionary<string, object> userAttempt = new Dictionary<string, object>
                 {
                     { "score", attempt.score },
+                    { "correct", attempt.correct },
+                    { "fail", attempt.fail },
                     { "uid" , attemptSnapshot.Id}
                 };
                 userAttempts.Add(userAttempt);
