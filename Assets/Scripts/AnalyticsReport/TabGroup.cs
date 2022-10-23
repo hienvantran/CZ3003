@@ -44,14 +44,19 @@ public class TabGroup : MonoBehaviour
 
     public void OnTabSelected(Tab tabButton)
     {
+        RectTransform rt;
         if (selectedTab != null)
         {
             selectedTab.Deselect();
+             rt = selectedTab.GetComponent<RectTransform>();
+            rt.sizeDelta = new Vector2(rt.sizeDelta.x, 40);
         }
 
         selectedTab = tabButton;
 
         selectedTab.Select();
+        rt = selectedTab.GetComponent<RectTransform>();
+        rt.sizeDelta = new Vector2(rt.sizeDelta.x, 50);
 
         ResetTabs();
         tabButton.background.color = tabSelectedColor;
