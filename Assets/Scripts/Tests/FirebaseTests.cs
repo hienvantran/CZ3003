@@ -70,7 +70,7 @@ public class FirebaseTests
         yield return new WaitUntil(() => fm.instantiated);
         FirestoreManager fsm = FirestoreManager.Instance;
 
-        fsm.AddAssignment("assignmentId", "qnsStr", res =>
+        fsm.AddAssignment("assignmentId", "qnsStr", null, res =>
         {
             Assert.IsNull(res);
         });
