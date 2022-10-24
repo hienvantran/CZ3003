@@ -17,6 +17,8 @@ public class Telegram : MonoBehaviour
     public Button sendMessage;
     public Button updateChats;
     public Button cancelBtn;
+    public Transform seedListContent;
+    public GameObject seedRowPrefab;
     public TMP_InputField seedText;
     public TextMeshProUGUI msgText;
     public GameObject errorText;
@@ -45,6 +47,7 @@ public class Telegram : MonoBehaviour
         {
             chatIdList = res;
         });
+        StartCoroutine(LoadSeedList());
     }
 
     public string API_URL
@@ -204,6 +207,26 @@ public class Telegram : MonoBehaviour
         seedText.text = "";
         msgText.text = "";
         errorText.SetActive(false);
+    }
+
+    public IEnumerator LoadSeedList()
+    {
+        List<string> keyList = new List<string>();
+        Task t = FirestoreManager.Instance.GetAssignmentKeysByUID(FirebaseManager.Instance.User.UserId, res =>
+        {
+            Debug.Log("Key Count:" + res.Count);
+            keyList = res;
+            
+        });
+        
+        yield return new WaitUntil(() => t.IsCompleted);
+        foreach (string key in keyList)
+        {
+            Debug.Log("Key: " + key);
+            GameObject row = Instantiate(seedRowPrefab, seedListContent);
+            //Debug.Log(row.name);
+            row.GetComponent<SeedBtn>().SetText(key);
+        }
     }
 
     /// <summary>

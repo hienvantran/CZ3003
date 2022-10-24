@@ -262,6 +262,7 @@ public class FirebaseManager : MonoBehaviour
                     currentRole = res;
                 });
             yield return new WaitUntil(predicate: () => GetUserRoleTask.IsCompleted);
+            
             Debug.LogFormat("GetUserRoleTask done 2");
             SceneManager.LoadScene("MainMenu");
             result?.Invoke("Login Success");

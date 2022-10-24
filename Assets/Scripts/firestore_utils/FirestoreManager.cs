@@ -273,13 +273,14 @@ public class FirestoreManager : MonoBehaviour
 
     //add assignment to firestore
     //* add functions don't actually need the calllback action but good to have incase you want to notify when done or smth
-    public void AddAssignment(string assignmentId, string qnsStr, Action<Dictionary<string, object>> result)
+    public void AddAssignment(string assignmentId, string qnsStr, string uid = null, Action<Dictionary<string, object>> result = null)
     {
         DocumentReference assignRef = db.Collection("assignments").Document(assignmentId);
 
         Dictionary<string, object> questionsStr = new Dictionary<string, object>
         {
             { "qnsString", qnsStr },
+            { "UID",  uid},
         };
         assignRef.SetAsync(questionsStr).ContinueWithOnMainThread(task =>
         {
@@ -361,6 +362,25 @@ public class FirestoreManager : MonoBehaviour
             }
             result?.Invoke(userAttempts);
 
+        });
+    }
+
+    //get assignment question string by assignment ID/Key
+    public Task GetAssignmentKeysByUID(string uid, Action<List<string>> result)
+    {
+        CollectionReference assignRef = db.Collection("assignments");
+        Query query = assignRef.WhereEqualTo("UID", uid);
+        Debug.Log("User ID: " + uid);
+        return query.GetSnapshotAsync().ContinueWith((task) =>
+        {
+            List<string> keyList = new List<string>();
+            var docs = task.Result.Documents;
+            foreach (DocumentSnapshot doc in docs)
+            {
+                Debug.Log("Key Id: " + doc.Id);
+                keyList.Add(doc.Id);
+            }
+            result?.Invoke(keyList);
         });
     }
 
