@@ -6,7 +6,8 @@
         "UnityEditor.TestRunner",
         "Firestore",
         "FirebaseAuth",
-        "CustomLevel"
+        "CustomLevel",
+        "Unity.PerformanceTesting"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
