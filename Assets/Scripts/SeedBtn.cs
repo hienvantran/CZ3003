@@ -6,7 +6,7 @@ using TMPro;
 public class SeedBtn : MonoBehaviour
 {
     public TextMeshProUGUI tmp;
-
+    private Telegram tele;
     // Start is called before the first frame update
     void Start()
     {
@@ -19,8 +19,9 @@ public class SeedBtn : MonoBehaviour
         
     }
 
-    public void SetText(string text)
+    public void SetText(string text, Telegram tele)
     {
+        this.tele = tele;
         Debug.Log("Seed: " + text);
         tmp.text = text;
     }
@@ -28,5 +29,6 @@ public class SeedBtn : MonoBehaviour
     public void OnClick()
     {
         GUIUtility.systemCopyBuffer = tmp.text;
+        StartCoroutine(tele.DisplayClipboardMsg(tmp.text));
     }
 }
