@@ -169,6 +169,24 @@ public class FirestoreManager : MonoBehaviour
         });
     }
 
+    // delete user
+    public void DeleteUser(FirebaseUser User)
+    {
+        DocumentReference users = db.Collection("users").Document(User.UserId);
+        users.DeleteAsync().ContinueWith(task => {
+            if (task.IsCanceled) {
+                Debug.LogError("DeleteAsync was canceled.");
+                return;
+            }
+            if (task.IsFaulted) {
+                Debug.LogError("DeleteAsync encountered an error: " + task.Exception);
+                return;
+            }
+
+            Debug.Log("userID deleted successfully.");
+        });
+    }
+
     //get username by user id
     public Task GetUsernamebyID(string uid, Action<string> result)
     {
@@ -313,6 +331,23 @@ public class FirestoreManager : MonoBehaviour
         });
     }
 
+    // delete userlevelattempt
+    public void DeleteAssignment(string assignmentId, Action<string> result)
+    {
+        DocumentReference assignRef = db.Collection("assignments").Document(assignmentId);
+        assignRef.DeleteAsync().ContinueWith(task => {
+            if (task.IsCanceled) {
+                Debug.LogError("DeleteAsync was canceled.");
+            }
+            if (task.IsFaulted) {
+                Debug.LogError("DeleteAsync encountered an error: " + task.Exception);
+            }
+
+            Debug.Log("AssignmentID deleted successfully.");
+            result?.Invoke(null);
+        });
+    }
+
     //get assignment question string by assignment ID/Key
     public Task GetAssignmentQnsStrbyID(string assignID, Action<string> result)
     {
@@ -411,13 +446,33 @@ public class FirestoreManager : MonoBehaviour
     // levelscore collections
     // add levelscore to firestore
     //* add functions don't actually need the calllback action but good to have incase you want to notify when done or smth
-    public void AddLevel(string levelId)
+    public void AddLevel(string levelId, Action<string> result)
     {
         DocumentReference levelRef = db.Collection("levelscore").Document(levelId);
         var empty_object = new Dictionary<string, object>();
         levelRef.SetAsync(empty_object).ContinueWithOnMainThread(task =>
         {
             Debug.Log("Added new level in the defaultlevelscore collection.");
+            result?.Invoke("");
+        });
+    }
+
+    // delete userlevelattempt
+    public void DeleteLevel(string levelId, Action<string> result)
+    {
+        DocumentReference levelRef = db.Collection("levelscore").Document(levelId);
+        levelRef.DeleteAsync().ContinueWith(task => {
+            if (task.IsCanceled) {
+                Debug.LogError("DeleteAsync was canceled.");
+                return;
+            }
+            if (task.IsFaulted) {
+                Debug.LogError("DeleteAsync encountered an error: " + task.Exception);
+                return;
+            }
+
+            Debug.Log("LevelID deleted successfully.");
+            result?.Invoke(null);
         });
     }
 
@@ -548,6 +603,25 @@ public class FirestoreManager : MonoBehaviour
                 chatIDs.Add(docSnapshot.Id);
             }
             result?.Invoke(chatIDs);
+        });
+    }
+
+    // delete chat ids
+    public void DeleteChatID(string chatid, Action<string> result)
+    {
+        DocumentReference docRef = db.Collection("telechats").Document(chatid);
+        docRef.DeleteAsync().ContinueWith(task => {
+            if (task.IsCanceled) {
+                Debug.LogError("DeleteAsync was canceled.");
+                return;
+            }
+            if (task.IsFaulted) {
+                Debug.LogError("DeleteAsync encountered an error: " + task.Exception);
+                return;
+            }
+
+            Debug.Log("ChatID deleted successfully.");
+            result?.Invoke("");
         });
     }
 }

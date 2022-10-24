@@ -2,63 +2,30 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
-// using Firebase;
-// using Firebase.Auth;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.SceneManagement;
 
 public class FirebaseTests
 {
-    // public FirebaseAuth auth;
-
     // users collection
 
-    // [UnityTest]
-    // public IEnumerator AddUser()
-    // {
+    [UnityTest]
+    public IEnumerator AddUser()
+    {
+        FirebaseManager fm = FirebaseManager.Instance;
+        yield return new WaitUntil(() => fm.instantiated);
         
-    //     //Firebase create user with email & pass
-    //     var RegisterTask = auth.CreateUserWithEmailAndPasswordAsync("test@gmail.com", "test123");
-    //     //wait
-    //     yield return new WaitUntil(predicate: () => RegisterTask.IsCompleted);
+        FirestoreManager fsm = FirestoreManager.Instance;
 
-    //     if (RegisterTask.Exception != null)
-    //     {
-    //         HandleRegisterTaskException(RegisterTask.Exception);
-    //         yield break;
-    //     }
-
-    //     //get result of created user
-    //     User = RegisterTask.Result;
-
-    //     if (User == null) yield break;
-
-    //     //Firebase auth update user profile
-    //     UserProfile profile = new UserProfile { DisplayName = _username };
-    //     var ProfileTask = User.UpdateUserProfileAsync(profile);
-    //     //Wait
-    //     yield return new WaitUntil(predicate: () => ProfileTask.IsCompleted);
-        
-    //     if (ProfileTask.Exception != null)
-    //     {
-    //         HandleProfileTaskException(ProfileTask.Exception);
-    //         var DeleteUserTask = User.DeleteAsync();
-    //         yield return new WaitUntil(predicate: () => DeleteUserTask.IsCompleted);
-    //         User = null;
-    //         yield break;
-    //     }
-
-    //     FirestoreManager fsm = FirestoreManager.Instance;
-        
-    //     yield return fsm.AddUser(User, "Student", res =>
-    //     {
-    //         Assert.IsNotNull(res);
-    //         var DeleteUserTask = User.DeleteAsync();
-    //         yield return new WaitUntil(predicate: () => DeleteUserTask.IsCompleted);
-
-    //     });
-    // }
+        fm.DoesUserExist(
+            "test@mail.com",
+            "123456",
+            "username", "Student", result =>
+            {
+                Assert.IsTrue(result);
+            });
+    }
 
     // assignments collection
 
@@ -70,10 +37,16 @@ public class FirebaseTests
         yield return new WaitUntil(() => fm.instantiated);
         FirestoreManager fsm = FirestoreManager.Instance;
 
+        Dictionary<string, object> addRes = new Dictionary<string, object>();
         fsm.AddAssignment("assignmentId", "qnsStr", res =>
         {
-            Assert.IsNull(res);
+            addRes = res;
         });
+        fsm.DeleteAssignment("assignmentId", res =>
+        {
+            Assert.IsNull(addRes);
+        });
+        
     }
 
     [UnityTest]
@@ -83,10 +56,14 @@ public class FirebaseTests
         FirebaseManager fm = FirebaseManager.Instance;
         yield return new WaitUntil(() => fm.instantiated);
         FirestoreManager fsm = FirestoreManager.Instance;
+        Dictionary<string, object> addRes = new Dictionary<string, object>();
 
         fsm.AddUserAssignmentAttempts("assignmentId", "userId", "userScore", "correct", "fail", res =>
         {
-            Assert.IsNull(res);
+            addRes = res;
+        });
+        fsm.DeleteAssignment("assignmentId", res => {
+            Assert.IsNull(addRes);
         });
     }
 
@@ -100,7 +77,15 @@ public class FirebaseTests
         yield return new WaitUntil(() => fm.instantiated);
         FirestoreManager fsm = FirestoreManager.Instance;
 
-        fsm.AddLevel("levelId");
+        string addRes = "";
+        fsm.AddLevel("levelId", res =>
+        {
+            addRes = res;
+        });
+        fsm.DeleteLevel("levelId", res => {
+            Assert.IsEmpty(addRes);
+        });
+       
     }
 
     [UnityTest]
@@ -111,9 +96,38 @@ public class FirebaseTests
         yield return new WaitUntil(() => fm.instantiated);
         FirestoreManager fsm = FirestoreManager.Instance;
 
+        Dictionary<string, object> addRes = new Dictionary<string, object>();
         fsm.AddUserLevelAttempts("levelId", "userId", "userScore", "correct", "fail", res =>
         {
-            Assert.IsNull(res);
+            addRes = res;
         });
+        fsm.DeleteLevel("levelId", res =>
+        {
+            Assert.IsNull(addRes);
+        });
+
+        
+    }
+
+    // telechats collection
+    [UnityTest]
+    public IEnumerator SaveChatID()
+    {
+        yield return SceneManager.LoadSceneAsync("Login");
+        FirebaseManager fm = FirebaseManager.Instance;
+        yield return new WaitUntil(() => fm.instantiated);
+        FirestoreManager fsm = FirestoreManager.Instance;
+
+        bool addRes = false;
+        fsm.SaveChatID("chatId", res =>
+        {
+            addRes = res;
+        });
+
+        fsm.DeleteChatID("chatId", res =>
+        {
+            Assert.IsTrue(addRes);
+        });
+        
     }
 }

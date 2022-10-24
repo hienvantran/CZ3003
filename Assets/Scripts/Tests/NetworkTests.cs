@@ -84,6 +84,20 @@ public class NetworkTests
     }
 
     [UnityTest]
+    public IEnumerator GetEmptyLevelAttemptsById()
+    {
+        yield return SceneManager.LoadSceneAsync("Login");
+        FirebaseManager fm = FirebaseManager.Instance;
+        yield return new WaitUntil(() => fm.instantiated);
+        FirestoreManager fsm = FirestoreManager.Instance;
+
+        yield return fsm.GetLevelAttemptsbyID("emptycase", res =>
+        {
+            Assert.IsEmpty(res);
+        });
+    }
+
+    [UnityTest]
     public IEnumerator GetSpecificUserLevelAttempt()
     {
         yield return SceneManager.LoadSceneAsync("Login");
@@ -95,6 +109,40 @@ public class NetworkTests
             "123456");
 
         yield return fsm.GetSpecificUserLevelAttempt("add-1", res =>
+        {
+            Assert.IsNotNull(res);
+        });
+    }
+
+    [UnityTest]
+    public IEnumerator GetWorldsLevels()
+    {
+        yield return SceneManager.LoadSceneAsync("Login");
+        FirebaseManager fm = FirebaseManager.Instance;
+        yield return new WaitUntil(() => fm.instantiated);
+        FirestoreManager fsm = FirestoreManager.Instance;
+        yield return fm.Login(
+            "yoho@mail.com",
+            "123456");
+
+        yield return fsm.GetWorldsLevels(res =>
+        {
+            Assert.IsNotNull(res);
+        });
+    }
+
+    [UnityTest]
+    public IEnumerator GetChatIDs()
+    {
+        yield return SceneManager.LoadSceneAsync("Login");
+        FirebaseManager fm = FirebaseManager.Instance;
+        yield return new WaitUntil(() => fm.instantiated);
+        FirestoreManager fsm = FirestoreManager.Instance;
+        yield return fm.Login(
+            "yoho@mail.com",
+            "123456");
+
+        yield return fsm.GetChatIDs(res =>
         {
             Assert.IsNotNull(res);
         });

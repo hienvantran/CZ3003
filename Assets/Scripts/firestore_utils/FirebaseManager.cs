@@ -1,6 +1,7 @@
 using System;
 using System.Text.RegularExpressions;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Firebase;
@@ -539,5 +540,51 @@ public class FirebaseManager : MonoBehaviour
             return false;
         }
         return (currentRole == "Teacher");
+    }
+
+    public bool DoesUserExist(string email, string password, string username, string role, Action<bool> result = null)
+    {
+        // Firebase create user with email & pass
+        bool userExist = false;
+        auth.CreateUserWithEmailAndPasswordAsync(email, password).ContinueWith(task => {
+            if (task.IsCanceled) {
+                Debug.LogError("CreateUserWithEmailAndPasswordAsync was canceled.");
+                userExist = false;
+            }
+            if (task.IsFaulted) {
+                Debug.LogError("CreateUserWithEmailAndPasswordAsync encountered an error: " + task.Exception);
+                userExist = false;
+            }
+            
+            Dictionary<string, object> userRes = new Dictionary<string, object>();
+            // Firebase user has been created.
+            Firebase.Auth.FirebaseUser user = task.Result;
+            //add firestore user data
+            var AddUserFirestoreTask = FirestoreManager.Instance.AddUser(user, role,
+                res =>
+                {
+                    //successful registration, go back to login screen
+                    Debug.LogFormat("User Registered: {0} ({1})", res["Name"], res["UID"]);
+                    userRes = res;
+
+                    user.DeleteAsync().ContinueWith(task => {
+                        if (task.IsCanceled) {
+                            Debug.LogError("DeleteAsync was canceled.");
+                            return;
+                        }
+                        if (task.IsFaulted) {
+                            Debug.LogError("DeleteAsync encountered an error: " + task.Exception);
+                            return;
+                    }
+
+                    Debug.Log("User deleted successfully.");
+                });
+            });
+            if (userRes is not null) {
+                userExist = true;
+                FirestoreManager.Instance.DeleteUser(user);
+            }
+            });
+        return userExist;
     }
 }
