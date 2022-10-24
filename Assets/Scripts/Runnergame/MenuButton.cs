@@ -16,7 +16,7 @@ public class MenuButton : MonoBehaviour
     private GameObject tooltip;
     private TextMeshProUGUI leveltext;
 
-    [SerializeField] private TMP_InputField seedInput;
+    [SerializeField] private TMP_Dropdown seedInput;
 
 
     // Start is called before the first frame update
@@ -78,7 +78,7 @@ public class MenuButton : MonoBehaviour
     {
         //decode seed for options
         Debug.Log("it's custom time");
-        string seed = seedInput.text;
+        string seed = seedInput.options[seedInput.value].text;
 
         //get qstring by seed(assignment key)
         var qnStrParamsTask = FirestoreManager.Instance.GetAssignmentQnsStrbyID(seed, res =>
