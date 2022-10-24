@@ -41,10 +41,10 @@ public class FirebaseTests
         fsm.AddAssignment("assignmentId", "qnsStr", res =>
         {
             addRes = res;
-        });
-        fsm.DeleteAssignment("assignmentId", res =>
-        {
-            Assert.IsNull(addRes);
+            fsm.DeleteAssignment("assignmentId", res =>
+            {
+                Assert.IsNull(addRes);
+            });
         });
         
     }
@@ -61,9 +61,9 @@ public class FirebaseTests
         fsm.AddUserAssignmentAttempts("assignmentId", "userId", "userScore", "correct", "fail", res =>
         {
             addRes = res;
-        });
-        fsm.DeleteAssignment("assignmentId", res => {
-            Assert.IsNull(addRes);
+            fsm.DeleteAssignment("assignmentId", res => {
+                Assert.IsNull(addRes);
+                });
         });
     }
 
@@ -81,11 +81,10 @@ public class FirebaseTests
         fsm.AddLevel("levelId", res =>
         {
             addRes = res;
+            fsm.DeleteLevel("levelId", res => {
+                Assert.IsEmpty(addRes);
+            });
         });
-        fsm.DeleteLevel("levelId", res => {
-            Assert.IsEmpty(addRes);
-        });
-       
     }
 
     [UnityTest]
@@ -100,13 +99,11 @@ public class FirebaseTests
         fsm.AddUserLevelAttempts("levelId", "userId", "userScore", "correct", "fail", res =>
         {
             addRes = res;
+            fsm.DeleteLevel("levelId", res =>
+            {
+                Assert.IsNull(addRes);
+            });
         });
-        fsm.DeleteLevel("levelId", res =>
-        {
-            Assert.IsNull(addRes);
-        });
-
-        
     }
 
     // telechats collection
@@ -122,11 +119,10 @@ public class FirebaseTests
         fsm.SaveChatID("chatId", res =>
         {
             addRes = res;
-        });
-
-        fsm.DeleteChatID("chatId", res =>
-        {
-            Assert.IsTrue(addRes);
+            fsm.DeleteChatID("chatId", res =>
+            {
+                Assert.IsTrue(addRes);
+            });
         });
         
     }

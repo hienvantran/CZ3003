@@ -155,8 +155,10 @@ public class FirebaseManager : MonoBehaviour
         nameRegisterField.text = "";
         emailRegisterField.text = "";
         roleRegisterDropdown.value = 0;
-        accessCode.text = "";
-        accessCode.gameObject.SetActive(false);
+        if (accessCode) {
+            accessCode.text = "";
+            accessCode.gameObject.SetActive(false);
+        }
         passwordRegisterField.text = "";
         confirmPasswordRegisterField.text = "";
         statusRegisterText.text = "";
