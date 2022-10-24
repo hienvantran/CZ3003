@@ -108,7 +108,7 @@ public class CustomLevelSetup : MonoBehaviour
             Debug.Log("level id: " + levelId);
 
             //push to database
-            FirestoreManager.Instance.AddAssignment(levelId, levelSeed, res =>
+            FirestoreManager.Instance.AddAssignment(levelId, levelSeed, FirebaseManager.Instance.User.UserId, res =>
             {
                 if (res["qnsString"] != null)
                 {

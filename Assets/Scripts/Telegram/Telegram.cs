@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Firebase.Auth;
 using UnityEngine.UI;
 using TMPro;
+using System.Threading;
 
 public class Telegram : MonoBehaviour
 {
@@ -17,9 +18,14 @@ public class Telegram : MonoBehaviour
     public Button sendMessage;
     public Button updateChats;
     public Button cancelBtn;
+    public Transform seedListContent;
+    public GameObject seedRowPrefab;
     public TMP_InputField seedText;
     public TextMeshProUGUI msgText;
+    public TextMeshProUGUI copyText;
+    private int taskCount = 0;
     public GameObject errorText;
+    
     public string TOKEN = "00000:aaaaaa";
     Regex chatIdRegex = new Regex(@"chat.:{.id.:(-[0-9]+)");
     List<string> chatIdList = new List<string>();
@@ -45,6 +51,7 @@ public class Telegram : MonoBehaviour
         {
             chatIdList = res;
         });
+        StartCoroutine(LoadSeedList());
     }
 
     public string API_URL
@@ -205,6 +212,39 @@ public class Telegram : MonoBehaviour
         msgText.text = "";
         errorText.SetActive(false);
     }
+
+    public IEnumerator LoadSeedList()
+    {
+        List<string> keyList = new List<string>();
+        Task t = FirestoreManager.Instance.GetAssignmentKeysByUID(FirebaseManager.Instance.User.UserId, res =>
+        {
+            Debug.Log("Key Count:" + res.Count);
+            keyList = res;
+            
+        });
+        
+        yield return new WaitUntil(() => t.IsCompleted);
+        foreach (string key in keyList)
+        {
+            Debug.Log("Key: " + key);
+            GameObject row = Instantiate(seedRowPrefab, seedListContent);
+            //Debug.Log(row.name);
+            row.GetComponent<SeedBtn>().SetText(key, this);
+        }
+    }
+
+    public IEnumerator DisplayClipboardMsg(string seed)
+    {
+        taskCount++;
+        copyText.SetText(string.Format("{0} has been copied to your clipboard!", seed));
+        copyText.gameObject.SetActive(true);
+        yield return new WaitForSeconds(3f);
+        taskCount--;
+        if (taskCount == 0)
+            copyText.gameObject.SetActive(false);
+    }
+
+
 
     /// <summary>
     /// Generic web request

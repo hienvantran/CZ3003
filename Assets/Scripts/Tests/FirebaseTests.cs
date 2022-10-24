@@ -38,7 +38,7 @@ public class FirebaseTests
         FirestoreManager fsm = FirestoreManager.Instance;
 
         Dictionary<string, object> addRes = new Dictionary<string, object>();
-        fsm.AddAssignment("assignmentId", "qnsStr", res =>
+        fsm.AddAssignment("assignmentId", "qnsStr", "user", res =>
         {
             addRes = res;
             fsm.DeleteAssignment("assignmentId", res =>
