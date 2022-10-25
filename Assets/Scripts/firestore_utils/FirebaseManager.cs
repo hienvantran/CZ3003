@@ -7,7 +7,7 @@ using UnityEngine.SceneManagement;
 using Firebase;
 using Firebase.Auth;
 using TMPro;
-
+using System.Threading.Tasks;
 
 public class FirebaseManager : MonoBehaviour
 {
@@ -404,6 +404,90 @@ public class FirebaseManager : MonoBehaviour
         });
 
         yield return new WaitUntil(predicate: () => AddUserFirestoreTask.IsCompleted);
+    }
+
+
+    public IEnumerator RegisterTest(string _email, string _username, string _password, Action<bool> callback = null)
+    {
+        string _role = "Student";
+        var RegisterTask = auth.CreateUserWithEmailAndPasswordAsync(_email, _password);
+        //wait
+        yield return new WaitUntil(predicate: () => RegisterTask.IsCompleted);
+
+        FirebaseUser user = RegisterTask.Result;
+
+        //Firebase auth update user profile
+        UserProfile profile = new UserProfile { DisplayName = _username };
+        var ProfileTask = user.UpdateUserProfileAsync(profile);
+        //Wait
+        yield return new WaitUntil(predicate: () => ProfileTask.IsCompleted);
+        Debug.Log("profile completed");
+        if (ProfileTask.Exception != null)
+        {
+            HandleProfileTaskException(ProfileTask.Exception);
+            var DeleteUserTask = user.DeleteAsync();
+            yield return new WaitUntil(predicate: () => DeleteUserTask.IsCompleted);
+            user = null;
+            callback?.Invoke(false);
+            Debug.Log("profile error");
+            yield break;
+        }
+        Debug.Log("Add user start");
+        //add firestore user data
+        var AddUserFirestoreTask = FirestoreManager.Instance.AddUser(user, _role,
+        res =>
+        {
+            Debug.Log("User added");
+            //successful registration, go back to login screen
+            Debug.LogFormat("User Registered: {0} ({1})", res["Name"], res["UID"]);
+            ShowRegisterStatus("");
+            statusLoginText.text = "Account Created";
+            this.BackButton();
+        });
+
+        yield return new WaitUntil(predicate: () => AddUserFirestoreTask.IsCompleted);
+        callback?.Invoke(true);
+    }
+
+    public IEnumerator LoginTest(string _email, string _password, Action<bool> callback = null)
+    {
+        if (auth.CurrentUser != null)
+            auth.SignOut();
+        //Firebase auth signin with email & pass
+        var LoginTask = auth.SignInWithEmailAndPasswordAsync(_email, _password);
+        //wait
+        yield return new WaitUntil(predicate: () => LoginTask.IsCompleted);
+        Debug.Log("Logged in");
+        //auth.SignOut();
+        callback?.Invoke(true);
+    }
+
+    public IEnumerator DeleteUser(Action<bool> callback = null)
+    {
+        FirebaseUser user = auth.CurrentUser;
+        if (user != null)
+        {
+            int delCount = 0;
+            yield return FirestoreManager.Instance.DeleteUser(user, res => delCount++);
+            yield return user.DeleteAsync().ContinueWith(task => {
+                if (task.IsCanceled)
+                {
+                    Debug.LogError("DeleteAsync was canceled.");
+                    callback?.Invoke(false);
+                    return;
+                }
+                if (task.IsFaulted)
+                {
+                    Debug.LogError("DeleteAsync encountered an error: " + task.Exception);
+                    callback?.Invoke(false);
+                    return;
+                }
+                delCount++;
+                Debug.Log("User deleted successfully.");
+            });
+            yield return new WaitUntil(() => delCount == 2);
+            callback?.Invoke(true);
+        }
     }
 
     //Send Forgot Password

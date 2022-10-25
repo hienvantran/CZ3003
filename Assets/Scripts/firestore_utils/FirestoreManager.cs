@@ -135,7 +135,6 @@ public class FirestoreManager : MonoBehaviour
     }
 
     //add user details to firestore
-    //* add functions don't actually need the calllback action but good to have incase you want to notify when done or smth
     public Task AddUser(FirebaseUser User, string role, Action<Dictionary<string, object>> result)
     {
         DocumentReference users = db.Collection("users").Document(User.UserId);
@@ -184,6 +183,28 @@ public class FirestoreManager : MonoBehaviour
             }
 
             Debug.Log("userID deleted successfully.");
+        });
+    }
+
+    // delete user via current logged in user
+    public IEnumerator DeleteUser(FirebaseUser User,Action<bool> callback)
+    {
+        DocumentReference users = db.Collection("users").Document(User.UserId);
+        yield return users.DeleteAsync().ContinueWith(task => {
+            if (task.IsCanceled)
+            {
+                Debug.LogError("DeleteAsync was canceled.");
+                callback?.Invoke(false);
+            }
+            else if (task.IsFaulted)
+            {
+                Debug.LogError("DeleteAsync encountered an error: " + task.Exception);
+                callback?.Invoke(false);
+            } else
+            {
+                Debug.Log("userID deleted successfully.");
+                callback?.Invoke(true);
+            }
         });
     }
 

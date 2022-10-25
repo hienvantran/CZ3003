@@ -105,7 +105,7 @@ public class NetworkTests
         yield return new WaitUntil(() => fm.instantiated);
         FirestoreManager fsm = FirestoreManager.Instance;
         yield return fm.Login(
-            "yoho@mail.com",
+            "student@mail.com",
             "123456");
 
         yield return fsm.GetSpecificUserLevelAttempt("add-1", res =>
