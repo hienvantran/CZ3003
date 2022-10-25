@@ -17,7 +17,7 @@ public class PerformanceTests
         yield return new WaitUntil(() => fm.instantiated);
         FirestoreManager fsm = FirestoreManager.Instance;
         yield return fm.Login(
-            "yoho@mail.com",
+            "student@mail.com",
             "123456");
 
         Task getTask;
@@ -78,6 +78,55 @@ public class PerformanceTests
         MeasureMemory();
 
         //measure frames
+        yield return Measure.Frames().Run();
+    }
+
+    [UnityTest, Performance]
+    public IEnumerator MultipleRegistration()
+    {
+        yield return SceneManager.LoadSceneAsync("Login");
+        FirebaseManager fm = FirebaseManager.Instance;
+        yield return new WaitUntil(() => fm.instantiated);
+        FirestoreManager fsm = FirestoreManager.Instance;
+
+        //mreasure scope
+        using (Measure.Scope(new SampleGroup("RegisterLoadTest")))
+        {
+            int totalCount = 10;
+            for (int i=0; i < totalCount; i++)
+            {
+                string email = string.Format("loadtest-1000{0}@mail.com", i);
+                string name = string.Format("testuser-1000{0}", i);
+                bool taskDone = false;
+                bool taskFailed = false;
+                yield return fm.RegisterTest(email, name, "123456", res => 
+                {
+                    taskDone = true;
+                    if (!res)
+                    {
+                        Debug.LogError("Register failed");
+                        taskFailed = true;
+                    }
+
+                });
+                yield return new WaitUntil(() => taskDone);
+                if (taskFailed)
+                    yield break;
+                taskDone = false;
+                yield return fm.LoginTest(email, "123456", res => taskDone = true);
+                yield return new WaitUntil(() => taskDone);
+
+                taskDone = false;
+                yield return fm.DeleteUser(res => taskDone = true);
+                yield return new WaitUntil(() => taskDone);
+
+            }
+        }
+
+        //measure memory
+        MeasureMemory();
+
+        //get frames
         yield return Measure.Frames().Run();
     }
 
