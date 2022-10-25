@@ -16,8 +16,8 @@ public class NetworkTests
         yield return new WaitUntil(() => fm.instantiated);
         FirestoreManager fsm = FirestoreManager.Instance;
         yield return fm.Login(
-            "yoho@mail.com",
-            "123456");
+            "test1@gmail.com",
+            "test123");
 
         yield return fsm.GetUserWorldProgress(res =>
         {
@@ -122,8 +122,8 @@ public class NetworkTests
         yield return new WaitUntil(() => fm.instantiated);
         FirestoreManager fsm = FirestoreManager.Instance;
         yield return fm.Login(
-            "yoho@mail.com",
-            "123456");
+            "test1@gmail.com",
+            "test123");
 
         yield return fsm.GetWorldsLevels(res =>
         {
@@ -139,8 +139,8 @@ public class NetworkTests
         yield return new WaitUntil(() => fm.instantiated);
         FirestoreManager fsm = FirestoreManager.Instance;
         yield return fm.Login(
-            "yoho@mail.com",
-            "123456");
+            "test1@gmail.com",
+            "test123");
 
         yield return fsm.GetChatIDs(res =>
         {

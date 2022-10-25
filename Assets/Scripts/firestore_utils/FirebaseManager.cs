@@ -629,7 +629,7 @@ public class FirebaseManager : MonoBehaviour
         return (currentRole == "Teacher");
     }
 
-    public bool DoesUserExist(string email, string password, string username, string role, Action<bool> result = null)
+    public bool DoesUserExist(string email, string password, string username, string role, Action<string> result)
     {
         // Firebase create user with email & pass
         bool userExist = false;
@@ -643,17 +643,14 @@ public class FirebaseManager : MonoBehaviour
                 userExist = false;
             }
             
-            Dictionary<string, object> userRes = new Dictionary<string, object>();
+            
             // Firebase user has been created.
             Firebase.Auth.FirebaseUser user = task.Result;
             //add firestore user data
             var AddUserFirestoreTask = FirestoreManager.Instance.AddUser(user, role,
                 res =>
                 {
-                    //successful registration, go back to login screen
-                    Debug.LogFormat("User Registered: {0} ({1})", res["Name"], res["UID"]);
-                    userRes = res;
-
+                    result?.Invoke(user.UserId);
                     user.DeleteAsync().ContinueWith(task => {
                         if (task.IsCanceled) {
                             Debug.LogError("DeleteAsync was canceled.");
@@ -662,16 +659,13 @@ public class FirebaseManager : MonoBehaviour
                         if (task.IsFaulted) {
                             Debug.LogError("DeleteAsync encountered an error: " + task.Exception);
                             return;
-                    }
-
-                    Debug.Log("User deleted successfully.");
+                        }
+                    Debug.LogFormat("Test User Registered: ({0})", res["UID"]);
+                    userExist = true;
+                    
                 });
             });
-            if (userRes is not null) {
-                userExist = true;
-                FirestoreManager.Instance.DeleteUser(user);
-            }
-            });
+        });
         return userExist;
     }
 }
