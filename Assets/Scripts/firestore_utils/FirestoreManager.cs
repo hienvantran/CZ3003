@@ -169,21 +169,23 @@ public class FirestoreManager : MonoBehaviour
     }
 
     // delete user
-    public void DeleteUser(FirebaseUser User)
+    public void deleteUser(string userID, Action<string> res)
     {
-        DocumentReference users = db.Collection("users").Document(User.UserId);
-        users.DeleteAsync().ContinueWith(task => {
+        Debug.LogFormat("{0} deleting...", userID);
+        DocumentReference userRef = db.Collection("users").Document(userID);
+        userRef.DeleteAsync().ContinueWith(task => {
+            
             if (task.IsCanceled) {
                 Debug.LogError("DeleteAsync was canceled.");
-                return;
             }
             if (task.IsFaulted) {
                 Debug.LogError("DeleteAsync encountered an error: " + task.Exception);
-                return;
             }
 
-            Debug.Log("userID deleted successfully.");
+            Debug.LogFormat("{0} deleted successfully.", userID);
+            res?.Invoke("User deleted successfully.");
         });
+        
     }
 
     // delete user via current logged in user

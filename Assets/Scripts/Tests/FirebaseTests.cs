@@ -17,13 +17,18 @@ public class FirebaseTests
         yield return new WaitUntil(() => fm.instantiated);
         
         FirestoreManager fsm = FirestoreManager.Instance;
-
+        string addRes = "";
         fm.DoesUserExist(
             "test@mail.com",
             "123456",
             "username", "Student", result =>
             {
-                Assert.IsTrue(result);
+                addRes = result;
+                
+                fsm.deleteUser(addRes, res => {
+                    Debug.Log(res);
+                    Assert.IsNotNull(addRes);
+                });
             });
     }
 

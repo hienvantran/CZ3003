@@ -35,8 +35,8 @@ public class LoginTests
         FirebaseManager fm = FirebaseManager.Instance;
         yield return new WaitUntil(() => fm.instantiated);
         yield return fm.Login(
-            "yoho@mail.com",
-            "123456",
+            "test1@gmail.com",
+            "test123",
             (result) =>
                 Assert.GreaterOrEqual((double)5, Time.unscaledTimeAsDouble - prevTime));
 
@@ -49,8 +49,8 @@ public class LoginTests
         FirebaseManager fm = FirebaseManager.Instance;
         yield return new WaitUntil(() => fm.instantiated);
         yield return fm.Login(
-            "yoho@mail.com",
-            "123456",
+            "test1@gmail.com",
+            "test123",
             (result) =>
                 Assert.AreEqual(result, "Login Success"));
         
@@ -63,8 +63,8 @@ public class LoginTests
         FirebaseManager fm = FirebaseManager.Instance;
         yield return new WaitUntil(() => fm.instantiated);
         yield return fm.Login(
-            "yoho@mail.com",
-            "12345",
+            "test1@gmail.com",
+            "test12",
             (result) =>
                 Assert.AreEqual(result, "Wrong Password"));
 
@@ -78,7 +78,7 @@ public class LoginTests
         yield return new WaitUntil(() => fm.instantiated);
         yield return fm.Login(
             "yoho",
-            "12345",
+            "test123",
             (result) =>
                 Assert.AreEqual(result, "Invalid Email"));
     }
@@ -91,7 +91,7 @@ public class LoginTests
         yield return new WaitUntil(() => fm.instantiated);
         yield return fm.Login(
             "",
-            "12345",
+            "test123",
             (result) =>
                 Assert.AreEqual(result, "Missing Email"));
     }
@@ -104,7 +104,7 @@ public class LoginTests
         yield return new WaitUntil(() => fm.instantiated);
         yield return fm.Login(
             "yoho123@mala.com",
-            "12345",
+            "test123",
             (result) =>
                 Assert.AreEqual(result, "Account does not exist"));
     }
