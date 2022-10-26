@@ -63,11 +63,11 @@ public class AnalyticsManager : MonoBehaviour
 {
     // map a tuple of (world, level) to attempt summary
     private Dictionary<(string, string), UserAttemptSummary> allSummariesWorldLevel;
-    [SerializeField] private AnalyticsRowUi analyticsRowUi;
-    private List<AnalyticsRowUi> rowUiList;
+    [SerializeField] private AnalyticsRowUI analyticsRowUi;
+    private List<AnalyticsRowUI> rowUIList;
 
     // keep tracks of the list of levels each world contains
-    private Dictionary<string, List<string>> worldsLevels;
+    private Dictionary<string, List<string>> worldLevelList;
 
     private string worldAll = "All";
     private string levelAll = "All";
@@ -81,8 +81,8 @@ public class AnalyticsManager : MonoBehaviour
 
     void Awake()
     {
-        worldsLevels = new Dictionary<string, List<string>>();
-        rowUiList = new List<AnalyticsRowUi>();
+        worldLevelList = new Dictionary<string, List<string>>();
+        rowUIList = new List<AnalyticsRowUI>();
         currentContentType = null;
     }
 
@@ -97,7 +97,7 @@ public class AnalyticsManager : MonoBehaviour
 
     public IEnumerator GetAnalyticsData()
     {
-        worldsLevels.Clear();
+        worldLevelList.Clear();
         if (currentContentType == ContentType.DefaultContent)
         {
             yield return StartCoroutine(GetContentStructureDefaultTask());
@@ -118,7 +118,7 @@ public class AnalyticsManager : MonoBehaviour
         var getContentHierarchyTask = FirestoreManager.Instance.GetWorldsLevels(
             res =>
             {
-                worldsLevels = res;
+                worldLevelList = res;
             }
         );
         yield return new WaitUntil(predicate: () => getContentHierarchyTask.IsCompleted);
@@ -130,7 +130,7 @@ public class AnalyticsManager : MonoBehaviour
         var getAssignmentHierarchyTask = FirestoreManager.Instance.GetAssignments(
             res =>
             {
-                worldsLevels.Add(assignmentWorldKey, res);
+                worldLevelList.Add(assignmentWorldKey, res);
             }
         );
         yield return new WaitUntil(predicate: () => getAssignmentHierarchyTask.IsCompleted);
@@ -142,7 +142,7 @@ public class AnalyticsManager : MonoBehaviour
         allSummariesWorldLevel = new Dictionary<(string, string), UserAttemptSummary>();
 
         UserAttemptSummary allWorldsAllLevelsAggAttempt = new UserAttemptSummary();
-        foreach (KeyValuePair<string, List<string>> levelsInWorld in worldsLevels)
+        foreach (KeyValuePair<string, List<string>> levelsInWorld in worldLevelList)
         {
             string currentWorld = levelsInWorld.Key;
             UserAttemptSummary currentWorldAllLevelsAggAttempt = new UserAttemptSummary();
@@ -155,7 +155,7 @@ public class AnalyticsManager : MonoBehaviour
                 var getScoresForSelectedContent = FirestoreManager.Instance.GetLevelAttemptsbyID(levelId,
                     attempts =>
                     {
-                        addAttemptToSummary(attempts, currentWorldCurrentLevelAttempt);
+                        AddAttemptToSummary(attempts, currentWorldCurrentLevelAttempt);
                     });
                 yield return new WaitUntil(predicate: () => getScoresForSelectedContent.IsCompleted);
                 allSummariesWorldLevel.Add((currentWorld, currentLevel), currentWorldCurrentLevelAttempt);
@@ -173,7 +173,7 @@ public class AnalyticsManager : MonoBehaviour
         allSummariesWorldLevel = new Dictionary<(string, string), UserAttemptSummary>();
 
         string currentWorld = assignmentWorldKey;
-        List<string> levels = worldsLevels[currentWorld];
+        List<string> levels = worldLevelList[currentWorld];
         UserAttemptSummary currentWorldAllLevelsAggAttempt = new UserAttemptSummary();
         foreach (string currentLevel in levels)
         {
@@ -182,7 +182,7 @@ public class AnalyticsManager : MonoBehaviour
             var getScoresForSelectedContent = FirestoreManager.Instance.GetAssignmentAttemptsbyID(assignId,
                 attempts =>
                 {
-                    addAttemptToSummary(attempts, currentWorldCurrentLevelAttempt);
+                    AddAttemptToSummary(attempts, currentWorldCurrentLevelAttempt);
                 });
             yield return new WaitUntil(predicate: () => getScoresForSelectedContent.IsCompleted);
             allSummariesWorldLevel.Add((currentWorld, currentLevel), currentWorldCurrentLevelAttempt);
@@ -191,7 +191,7 @@ public class AnalyticsManager : MonoBehaviour
         allSummariesWorldLevel.Add((currentWorld, levelAll), currentWorldAllLevelsAggAttempt);
     }
 
-    private void addAttemptToSummary(List<Dictionary<string, object>> attempts, UserAttemptSummary summary)
+    private void AddAttemptToSummary(List<Dictionary<string, object>> attempts, UserAttemptSummary summary)
     {
         foreach (Dictionary<string, object> userAttempt in attempts)
         {
@@ -205,17 +205,17 @@ public class AnalyticsManager : MonoBehaviour
 
     private void ClearRows()
     {
-        foreach (AnalyticsRowUi row in rowUiList)
+        foreach (AnalyticsRowUI row in rowUIList)
         {
             Destroy(row.gameObject);
         }
-        rowUiList.Clear();
+        rowUIList.Clear();
     }
 
     private void DisplayRows()
     {
         if (currentContentType == ContentType.DefaultContent) AddRow(worldAll, levelAll);
-        foreach (KeyValuePair<string, List<string>> levelsInWorld in worldsLevels)
+        foreach (KeyValuePair<string, List<string>> levelsInWorld in worldLevelList)
         {
             string currentWorld = levelsInWorld.Key;
             List<string> levels = levelsInWorld.Value;
@@ -230,8 +230,8 @@ public class AnalyticsManager : MonoBehaviour
     private void AddRow(string world, string level)
     {
         UserAttemptSummary summary = allSummariesWorldLevel[(world, level)];
-        AnalyticsRowUi row = Instantiate(analyticsRowUi, transform).GetComponent<AnalyticsRowUi>();
-        rowUiList.Add(row);
+        AnalyticsRowUI row = Instantiate(analyticsRowUi, transform).GetComponent<AnalyticsRowUI>();
+        rowUIList.Add(row);
         if (!summary.IsAttempted())
         {
             row.Display(world, level, "0", "NA", "NA");

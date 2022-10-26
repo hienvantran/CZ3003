@@ -10,7 +10,7 @@ public class TabGroup : MonoBehaviour
 {
     // These must be 1 to 1, same order in hierarchy
     [HideInInspector]
-    public List<Tab> tabButtons = new List<Tab>();
+    public List<Tab> tabButtonList = new List<Tab>();
 
     //In case I need to sort the lists by GetSiblingIndex
     //objListOrder.Sort((x, y) => x.OrderDate.CompareTo(y.OrderDate));
@@ -23,7 +23,7 @@ public class TabGroup : MonoBehaviour
     public void Start()
     {
         // Select first tab
-        foreach (Tab tabButton in tabButtons)
+        foreach (Tab tabButton in tabButtonList)
         {
             if (tabButton.transform.GetSiblingIndex() == 0)
                 OnTabSelected(tabButton);
@@ -32,9 +32,9 @@ public class TabGroup : MonoBehaviour
 
     public void Subscribe(Tab tabButton)
     {
-        tabButtons.Add(tabButton);
+        tabButtonList.Add(tabButton);
         // Sort by order in hierarchy
-        tabButtons.Sort((x, y) => x.transform.GetSiblingIndex().CompareTo(y.transform.GetSiblingIndex()));
+        tabButtonList.Sort((x, y) => x.transform.GetSiblingIndex().CompareTo(y.transform.GetSiblingIndex()));
     }
 
     public void OnTabExit(Tab tabButton)
@@ -68,7 +68,7 @@ public class TabGroup : MonoBehaviour
 
     public void ResetTabs()
     {
-        foreach (Tab tabButton in tabButtons)
+        foreach (Tab tabButton in tabButtonList)
         {
             if ((selectedTab != null) && (tabButton == selectedTab))
                 continue;
@@ -79,14 +79,14 @@ public class TabGroup : MonoBehaviour
     public void NextTab()
     {
         int currentIndex = selectedTab.transform.GetSiblingIndex();
-        int nextIndex = currentIndex < tabButtons.Count - 1 ? currentIndex + 1 : tabButtons.Count - 1;
-        OnTabSelected(tabButtons[nextIndex]);
+        int nextIndex = currentIndex < tabButtonList.Count - 1 ? currentIndex + 1 : tabButtonList.Count - 1;
+        OnTabSelected(tabButtonList[nextIndex]);
     }
 
     public void PreviousTab()
     {
         int currentIndex = selectedTab.transform.GetSiblingIndex();
         int previousIndex = currentIndex > 0 ? currentIndex - 1 : 0;
-        OnTabSelected(tabButtons[previousIndex]);
+        OnTabSelected(tabButtonList[previousIndex]);
     }
 }

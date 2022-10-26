@@ -11,14 +11,14 @@ public class ScoreManager : MonoBehaviour
     private Dictionary<string, int> scoreSelectedLevels;
     private string current_username;
     [SerializeField] private SelectionManager selectionManager;
-    [SerializeField] private RowUi rowUi;
+    [SerializeField] private RowUI rowUi;
 
-    private List<RowUi> rowUiList;
+    private List<RowUI> rowUiList;
 
     void Start()
     {
         scoreData = new UserScoreData();
-        rowUiList = new List<RowUi>();
+        rowUiList = new List<RowUI>();
         scoreSelectedLevels = new Dictionary<string, int>();
         selectionManager.SelectionChanged += UpdateScoreDisplay;
     }
@@ -32,7 +32,7 @@ public class ScoreManager : MonoBehaviour
     // get user score data from database
     public IEnumerator RetrieveUserScoreData()
     {
-        List<(string, string)> selectedWorldsLevels = selectionManager.getSelectedWorldsLevels();
+        List<(string, string)> selectedWorldsLevels = selectionManager.GetSelectedWorldsLevels();
         scoreData.Clear();
         scoreSelectedLevels.Clear();
 
@@ -73,7 +73,7 @@ public class ScoreManager : MonoBehaviour
             var getScoresForSelectedContent = FirestoreManager.Instance.GetLevelAttemptsbyID(levelId,
                 res =>
                 {
-                    addUserAttemptsSelectedLevel(res);
+                    AddUserAttemptsSelectedLevel(res);
                 });
             yield return new WaitUntil(predicate: () => getScoresForSelectedContent.IsCompleted);
         }
@@ -83,13 +83,13 @@ public class ScoreManager : MonoBehaviour
             var getScoresForSelectedContent = FirestoreManager.Instance.GetAssignmentAttemptsbyID(assignId,
                 res =>
                 {
-                    addUserAttemptsSelectedLevel(res);
+                    AddUserAttemptsSelectedLevel(res);
                 });
             yield return new WaitUntil(predicate: () => getScoresForSelectedContent.IsCompleted);
         }
     }
 
-    private void addUserAttemptsSelectedLevel(List<Dictionary<string, object>> attempts)
+    private void AddUserAttemptsSelectedLevel(List<Dictionary<string, object>> attempts)
     {
         foreach (Dictionary<string, object> userAttempt in attempts)
         {
@@ -104,7 +104,7 @@ public class ScoreManager : MonoBehaviour
 
     private void ClearRows()
     {
-        foreach (RowUi row in rowUiList)
+        foreach (RowUI row in rowUiList)
         {
             Destroy(row.gameObject);
         }
@@ -119,7 +119,7 @@ public class ScoreManager : MonoBehaviour
         int previous_rank = 1;
         for (int index = 0; index < arrangedScores.Length; index++)
         {
-            RowUi row = Instantiate(rowUi, transform).GetComponent<RowUi>();
+            RowUI row = Instantiate(rowUi, transform).GetComponent<RowUI>();
             int current_score = arrangedScores[index].score;
             int current_rank;
 
@@ -135,7 +135,7 @@ public class ScoreManager : MonoBehaviour
             previous_rank = current_rank;
             previous_score = current_score;
 
-            row.displayRankUserScore(current_rank, arrangedScores[index]);
+            row.DisplayRankUserScore(current_rank, arrangedScores[index]);
             rowUiList.Add(row);
         }
     }

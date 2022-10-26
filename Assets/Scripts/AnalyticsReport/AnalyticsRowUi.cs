@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
-public class AnalyticsRowUi : MonoBehaviour
+public class AnalyticsRowUI : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI world;
     [SerializeField] private TextMeshProUGUI level;

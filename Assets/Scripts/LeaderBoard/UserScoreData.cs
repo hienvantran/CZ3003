@@ -5,26 +5,26 @@ using System.Linq;
 [Serializable]
 public class UserScoreData
 {
-    private List<UserScore> userScores;
+    private List<UserScore> userScoreList;
 
     public UserScoreData()
     {
-        userScores = new List<UserScore>();
+        userScoreList = new List<UserScore>();
     }
 
     public void AddUserScore(UserScore userScore)
     {
-        userScores.Add(userScore);
+        userScoreList.Add(userScore);
     }
 
     public UserScore[] GetScoresDescendingOrder()
     {
-        return userScores.OrderByDescending(userScore => userScore.score).ToArray();
+        return userScoreList.OrderByDescending(userScore => userScore.score).ToArray();
     }
 
     public void Clear()
     {
-        userScores.Clear();
+        userScoreList.Clear();
     }
 }
 

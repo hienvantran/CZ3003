@@ -13,7 +13,7 @@ public class SelectionManager : MonoBehaviour
     [SerializeField] private TMP_Dropdown levelDropdown;
 
     // keep tracks of the list of levels each world or assignment contains
-    private Dictionary<string, List<string>> worldsLevels;
+    private Dictionary<string, List<string>> worldLevelList;
 
     public delegate void OnSelectionChangedDelegate();
     public event OnSelectionChangedDelegate SelectionChanged;
@@ -33,7 +33,7 @@ public class SelectionManager : MonoBehaviour
 
     void Start()
     {
-        worldsLevels = new Dictionary<string, List<string>>();
+        worldLevelList = new Dictionary<string, List<string>>();
         Debug.Log("Start trying to retrieve content hierarchy");
         StartCoroutine(GetContentStructure());
     }
@@ -44,14 +44,14 @@ public class SelectionManager : MonoBehaviour
         var getDefaultContentHierarchyTask = FirestoreManager.Instance.GetWorldsLevels(
             res =>
             {
-                worldsLevels = res;
+                worldLevelList = res;
             }
         );
         yield return new WaitUntil(predicate: () => getDefaultContentHierarchyTask.IsCompleted);
         var getAssignmentHierarchyTask = FirestoreManager.Instance.GetAssignments(
             res =>
             {
-                worldsLevels[assignmentWorldKey] = res;
+                worldLevelList[assignmentWorldKey] = res;
             }
         );
         yield return new WaitUntil(predicate: () => getAssignmentHierarchyTask.IsCompleted);
@@ -65,7 +65,7 @@ public class SelectionManager : MonoBehaviour
     {
         ClearOptionsAndSetDefault(worldDropdown);
         Debug.Log("Updating world dropdown");
-        worldDropdown.AddOptions(WorldKeyNaming(worldsLevels.Keys.ToList()));
+        worldDropdown.AddOptions(WorldKeyNaming(worldLevelList.Keys.ToList()));
     }
 
     void UpdateLevelOptions()
@@ -75,7 +75,7 @@ public class SelectionManager : MonoBehaviour
         Debug.Log("Updating level dropdown");
         if (worldSelected != defaultOptionAll)
         {
-            levelDropdown.AddOptions(worldsLevels[worldSelected]);
+            levelDropdown.AddOptions(worldLevelList[worldSelected]);
         }
     }
 
@@ -122,14 +122,14 @@ public class SelectionManager : MonoBehaviour
         return dropdown.options[index].text;
     }
 
-    public List<(string, string)> getSelectedWorldsLevels()
+    public List<(string, string)> GetSelectedWorldsLevels()
     {
         string worldSelected = GetWorldSelected();
         string levelSelected = GetLevelSelected();
 
         List<(string, string)> selectedWorldsLevels = new List<(string, string)>();
 
-        foreach (KeyValuePair<string, List<string>> worldLevelsPair in worldsLevels)
+        foreach (KeyValuePair<string, List<string>> worldLevelsPair in worldLevelList)
         {
             if (worldSelected != defaultOptionAll && worldLevelsPair.Key != worldSelected) continue;
             foreach (string level in worldLevelsPair.Value)
