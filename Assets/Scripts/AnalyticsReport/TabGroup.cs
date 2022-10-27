@@ -37,24 +37,17 @@ public class TabGroup : MonoBehaviour
         tabButtonList.Sort((x, y) => x.transform.GetSiblingIndex().CompareTo(y.transform.GetSiblingIndex()));
     }
 
-    public void OnTabExit(Tab tabButton)
-    {
-        ResetTabs();
-    }
-
     public void OnTabSelected(Tab tabButton)
     {
         RectTransform rt;
         if (selectedTab != null)
         {
-            selectedTab.Deselect();
-             rt = selectedTab.GetComponent<RectTransform>();
+            rt = selectedTab.GetComponent<RectTransform>();
             rt.sizeDelta = new Vector2(rt.sizeDelta.x, 40);
         }
 
         selectedTab = tabButton;
 
-        selectedTab.Select();
         rt = selectedTab.GetComponent<RectTransform>();
         rt.sizeDelta = new Vector2(rt.sizeDelta.x, 50);
 
@@ -74,19 +67,5 @@ public class TabGroup : MonoBehaviour
                 continue;
             tabButton.background.color = tabIdleColor;
         }
-    }
-
-    public void NextTab()
-    {
-        int currentIndex = selectedTab.transform.GetSiblingIndex();
-        int nextIndex = currentIndex < tabButtonList.Count - 1 ? currentIndex + 1 : tabButtonList.Count - 1;
-        OnTabSelected(tabButtonList[nextIndex]);
-    }
-
-    public void PreviousTab()
-    {
-        int currentIndex = selectedTab.transform.GetSiblingIndex();
-        int previousIndex = currentIndex > 0 ? currentIndex - 1 : 0;
-        OnTabSelected(tabButtonList[previousIndex]);
     }
 }

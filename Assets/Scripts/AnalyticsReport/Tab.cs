@@ -8,7 +8,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.Events;
 
 [RequireComponent(typeof(Image))]
-public class Tab : MonoBehaviour, IPointerClickHandler, IPointerExitHandler
+public class Tab : MonoBehaviour, IPointerClickHandler
 {
     [SerializeField] private TabGroup tabGroup;
     public UnityEvent onTabSelected;
@@ -30,28 +30,4 @@ public class Tab : MonoBehaviour, IPointerClickHandler, IPointerExitHandler
     {
         tabGroup.OnTabSelected(this);
     }
-
-    public void OnPointerExit(PointerEventData eventData)
-    {
-        tabGroup.OnTabExit(this);
-    }
-
-    public void Select()
-    {
-        if (onTabSelected != null)
-        {
-            onTabSelected.Invoke();
-        }
-    }
-
-    public void Deselect()
-    {
-        if (onTabDeselected != null)
-        {
-            onTabSelected.Invoke();
-        }
-
-    }
-
-
 }
