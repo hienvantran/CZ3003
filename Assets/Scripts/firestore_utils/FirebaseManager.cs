@@ -49,8 +49,8 @@ public class FirebaseManager : MonoBehaviour
     public bool instantiated = false;
     public string access = "123456";
 
-    public Regex emailRegex = new Regex(@"^[a-zA-Z0-9]+@([a-z]+\.)+[a-z]+");
-    
+    public Regex emailRegex = new Regex(@"^[a-zA-Z0-9]+(-[a-zA-Z0-9]+)*@([a-z]+\.)+[a-z]+");
+
 
     public static FirebaseManager Instance
     {
